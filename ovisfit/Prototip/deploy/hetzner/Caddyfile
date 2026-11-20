@@ -1,0 +1,7 @@
+{$OVIS_DOMAIN} {
+	encode gzip
+	request_body {
+		max_size 4MB
+	}
+	reverse_proxy ovisfit:8787
+}

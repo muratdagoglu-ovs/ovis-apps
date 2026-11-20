@@ -1,0 +1,33 @@
+# Ovis Fit analiz sunucusu · Hetzner (veya herhangi bir Linux sunucu)
+# Kurulum: Mac'ten  ./scripts/deploy-hetzner.sh root@SUNUCU_IP fit-api.alanadin.com
+services:
+  ovisfit:
+    build: ./server
+    restart: unless-stopped
+    env_file: .env                  # ANTHROPIC_API_KEY burada; yalnızca sunucuda, chmod 600
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      TRUST_PROXY: "1"
+      OVIS_RATE_PER_HOUR: "30"
+    ports:
+      - "127.0.0.1:8787:8787"       # dışarıya kapalı; yalnızca HTTPS vekili erişir
+
+  caddy:                            # 80/443 boşsa: otomatik HTTPS (Let's Encrypt)
+    image: caddy:2
+    profiles: ["tls"]
+    restart: unless-stopped
+    depends_on: [ovisfit]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      OVIS_DOMAIN: ${OVIS_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

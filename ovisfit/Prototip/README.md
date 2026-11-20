@@ -119,6 +119,18 @@ Aynı projeden **Product › Archive › Distribute App › App Store Connect** 
 
 **İmza notu:** Widget hedefi ve App Group nedeniyle Bundle ID artık `OVIS_BUNDLE_ID` ile verilir (varsayılan `com.ovis.fit`). Xcode'da her iki hedef için de (OvisFit ve OvisFitWidgets) Team seçilmelidir. Otomatik imzalama App Group'u ve `com.ovis.fit.widgets` kimliğini kendisi oluşturur.
 
+## Sunucuyu Hetzner'e kurma
+
+1. Alan adı sağlayıcında bir alt alan adı aç (ör. `fit-api.alanadin.com`) ve **A kaydını** Hetzner sunucusunun IP'sine yönlendir.
+2. Hetzner Cloud Console › Firewall'da **80** ve **443** portlarının açık olduğundan emin ol.
+3. Mac'te, `Prototip` klasöründe:
+   ```bash
+   ./scripts/deploy-hetzner.sh root@SUNUCU_IP fit-api.alanadin.com
+   ```
+   İlk kurulumda Anthropic API anahtarı sorulur (ekranda görünmez, yalnızca sunucuda `/opt/ovisfit/.env` içinde durur). Docker yoksa kurulur; 80/443 boşsa Caddy ile otomatik HTTPS açılır, doluysa mevcut nginx için eklenecek blok ekrana basılır.
+4. Güncelleme için aynı komutu tekrar çalıştır.
+5. `Config/Base.xcconfig` içindeki `OVIS_API_BASE_URL[config=Release]` satırına `https:/$()/fit-api.alanadin.com` yaz; TestFlight sürümü bu adresi kullanır.
+
 ## Fiziksel iPhone ve TestFlight
 
 1. **Sunucu:** `server/Dockerfile` ile HTTPS sağlayan bir platformda (TLS sonlandıran ters vekil arkasında) çalıştır. `ANTHROPIC_API_KEY` platformun gizli değişkeni olarak verilir. `curl https://<adres>/health` ile doğrula.
