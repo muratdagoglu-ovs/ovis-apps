@@ -1,0 +1,16 @@
+// Kopyala: cp Config/Local.xcconfig.example Config/Local.xcconfig
+// Bu dosya git'e eklenmez. API anahtarı ASLA buraya yazılmaz (yalnızca sunucuda).
+
+// Apple Developer hesabındaki 10 karakterlik Team ID (developer.apple.com › Membership)
+DEVELOPMENT_TEAM = ABCDE12345
+
+// App Store Connect'teki uygulamanın Bundle ID'si (widget ve App Group bundan türetilir)
+OVIS_BUNDLE_ID = com.ovis.fit
+
+// Her TestFlight yüklemesinde artır (veya scripts/testflight.sh BUILD_NUMBER ile verir)
+CURRENT_PROJECT_VERSION = 1
+
+// Fiziksel iPhone / TestFlight için erişilebilir HTTPS analiz sunucusu.
+// İki satır da gerekli: Base.xcconfig'deki Release'e özel boş değerin üzerine yazar.
+OVIS_API_BASE_URL = https:/$()/ovis-api.sirketin.com
+OVIS_API_BASE_URL[config=Release] = https:/$()/ovis-api.sirketin.com

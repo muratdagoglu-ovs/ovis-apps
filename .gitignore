@@ -1,0 +1,14 @@
+.build/
+build/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+.DS_Store
+node_modules/
+.env
+ovisfit/Prototip/Config/Local.xcconfig
+ovisfit/Prototip/build/
+ovisfit/Prototip/scripts/AuthKey_*.p8
+ovisfit/OvisFit_kaynak.zip
+ovisfit/Prototip/server/node_modules/
+

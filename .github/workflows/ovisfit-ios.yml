@@ -1,0 +1,108 @@
+name: Ovis Fit · iOS derleme
+
+on:
+  push:
+    paths:
+      - 'ovisfit/**'
+      - '.github/workflows/ovisfit-ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ovisfit-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ovisfit/Prototip
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode seç
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | sort -V | tail -1)"
+          xcodebuild -version
+          xcodebuild -list -project OvisFit.xcodeproj
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ovisfit/Prototip/server/package-lock.json
+
+      - name: Sunucu testleri
+        working-directory: ovisfit/Prototip/server
+        run: |
+          npm ci --no-fund --no-audit
+          node --test server.test.mjs
+
+      - name: Mantık testleri (swift test)
+        run: swift test
+
+      - name: Simülatör seç ve aç
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys, re
+          d = json.load(sys.stdin)["devices"]; best = None
+          for rt, devs in d.items():
+              m = re.search(r"iOS-(\d+)-(\d+)", rt)
+              if not m or int(m.group(1)) < 17: continue
+              for dev in devs:
+                  if dev["name"].startswith("iPhone 16") or dev["name"].startswith("iPhone 15"):
+                      key = (int(m.group(1)), int(m.group(2)), dev["name"] == "iPhone 16")
+                      if best is None or key > best[0]: best = (key, dev["udid"], dev["name"], rt)
+          print(best[1]); print(best[2], best[3], file=sys.stderr)')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Derle (Debug, simülatör, uygulama + widget)
+        run: |
+          set -o pipefail
+          xcodebuild -project OvisFit.xcodeproj -scheme OvisFit -configuration Debug \
+            -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build-log.txt | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build-log.txt
+
+      - name: Kur, aç ve ekran görüntüsü al
+        run: |
+          APP=build/dd/Build/Products/Debug-iphonesimulator/OvisFit.app
+          BUNDLE=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP/Info.plist")
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
+          mkdir -p screenshots
+          # İlk açılış: boş günlük, profil ekranı (gerçek veri akışı)
+          xcrun simctl launch "$UDID" "$BUNDLE" -OvisResetData
+          sleep 6
+          xcrun simctl io "$UDID" screenshot screenshots/00-ilk-acilis-profil.png
+          xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          # Tasarım karşılaştırması: ayrı geçici örnek veriyle (gerçek günlüğe yazılmaz)
+          for s in today analysis water; do
+            xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen "$s"
+            sleep 7
+            xcrun simctl io "$UDID" screenshot "screenshots/$s.png"
+            xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          done
+          ls -la screenshots
+
+      - name: Cihaz derlemesi (imzasız, derleme kontrolü)
+        run: |
+          set -o pipefail
+          xcodebuild -project OvisFit.xcodeproj -scheme OvisFit -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath build/dd-device \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee device-log.txt | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" device-log.txt
+
+      - name: Çıktıları yükle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ovisfit-ciktilar
+          path: |
+            ovisfit/Prototip/screenshots
+            ovisfit/Prototip/build-log.txt
+            ovisfit/Prototip/device-log.txt
+          if-no-files-found: ignore

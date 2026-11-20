@@ -1,0 +1,21 @@
+// Ovis Fit ortak derleme ayarları.
+// Kişisel ayarlar (Team, Bundle ID, üretim sunucusu) için Config/Local.xcconfig oluştur:
+//   cp Config/Local.xcconfig.example Config/Local.xcconfig
+// Local.xcconfig git'e eklenmez.
+
+// Uygulama kimliği. Widget: $(OVIS_BUNDLE_ID).widgets · App Group: group.$(OVIS_BUNDLE_ID)
+OVIS_BUNDLE_ID = com.ovis.fit
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+
+// Simülatör aynı Mac'teki Node sunucusunu kullanır. ("//" xcconfig'de yorum olduğu için $() ile bölünür.)
+OVIS_API_BASE_URL = http:/$()/127.0.0.1:8787
+// Release/TestFlight derlemesinde varsayılan adres yok: Local.xcconfig'de HTTPS adresi ver
+// veya kullanıcı Profil › Analiz sunucusu bölümünden girsin.
+OVIS_API_BASE_URL[config=Release] =
+
+#include? "Local.xcconfig"
+
+// Local.xcconfig OVIS_BUNDLE_ID'yi değiştirebilir; türetilen değerler en sonda hesaplanır.
+PRODUCT_BUNDLE_IDENTIFIER = $(OVIS_BUNDLE_ID)
+OVIS_APP_GROUP = group.$(OVIS_BUNDLE_ID)
