@@ -64,8 +64,16 @@ struct ProfileFormView: View {
     @StateObject private var editor = ProfileEditor()
     @State private var loaded = false
     @State private var showGoal = false
+    @FocusState private var focus: ProfileField?
+
+    private let order: [ProfileField] = [.name, .age, .height, .weight]
+    private var nextField: ProfileField? {
+        guard let f = focus, let i = order.firstIndex(of: f), i + 1 < order.count else { return nil }
+        return order[i + 1]
+    }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScreenScroll {
             HStack(alignment: .bottom, spacing: 14) {
                 ScreenHeading(kicker: "Profil · 1 / 2", plain: "Seni ", accent: "tanıyalım.")
@@ -113,15 +121,24 @@ struct ProfileFormView: View {
                 DataSection()
             }
         }
+        .onChange(of: focus) { _, f in
+            // Odaklanan kutu klavyenin üstünde görünür kalsın.
+            guard let f else { return }
+            withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(f, anchor: .center) }
+        }
+        }
         .safeAreaInset(edge: .bottom) {
+            if focus == nil {
             BottomAction {
                 Button {
+                    focus = nil
                     Keyboard.dismiss()
                     if editor.validateStepOne() { showGoal = true }
                 } label: {
                     Label("Devam et", systemImage: "chevron.right").labelStyle(TrailingIconLabelStyle())
                 }
                 .buttonStyle(PrimaryButtonStyle())
+            }
             }
         }
         .navigationDestination(isPresented: $showGoal) {
@@ -130,8 +147,11 @@ struct ProfileFormView: View {
         .secondaryScreen()
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
+                if let next = nextField {
+                    Button("Sonraki") { focus = next }
+                }
                 Spacer()
-                Button("Bitti") { Keyboard.dismiss() }
+                Button("Bitti") { focus = nil; Keyboard.dismiss() }
             }
         }
         .onAppear {
@@ -146,14 +166,17 @@ struct ProfileFormView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Color.ofInk)
                 .accessibilityHidden(true)
-            BoxField(prompt, text: text, keyboard: keyboard,
-                     contentType: f == .name ? .givenName : nil, autocorrect: f == .name,
-                     invalid: editor.errors[f] != nil, identifier: "field.\(f.rawValue)")
+            FocusBoxField(prompt, text: text, focus: $focus, equals: f, keyboard: keyboard,
+                          contentType: f == .name ? .givenName : nil, autocorrect: f == .name,
+                          invalid: editor.errors[f] != nil, identifier: "field.\(f.rawValue)")
+                .submitLabel(f == .weight ? .done : .next)
+                .onSubmit { focus = order.firstIndex(of: f).flatMap { $0 + 1 < order.count ? order[$0 + 1] : nil } }
                 .accessibilityLabel(title)
             if let error = editor.errors[f] {
                 Text(error).font(.footnote).foregroundStyle(Color.ofWarn)
             }
         }
+        .id(f)
     }
 }
 

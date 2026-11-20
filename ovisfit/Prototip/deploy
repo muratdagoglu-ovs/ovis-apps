@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Ovis Fit · tek komutla güncelleme (CRM'deki script/deploy-canli.sh gibi). Mac'te, bu klasörde:
+#
+#   ./deploy            # en güncel kodu çek + Hetzner sunucusunu güncelle + bağlı iPhone'a kur
+#   ./deploy sunucu     # yalnızca Hetzner'deki analiz sunucusu
+#   ./deploy iphone     # yalnızca iPhone (Xcode'u açmadan derler ve kurar)
+#
+# iPhone için: telefon kabloyla (veya aynı Wi‑Fi'de eşleşmiş) bağlı, kilidi açık ve Geliştirici Modu açık olmalı.
+# İmza için Config/Local.xcconfig içinde DEVELOPMENT_TEAM tanımlı olmalı (bir kez: echo 'DEVELOPMENT_TEAM = 3Q2KZ332U9' > Config/Local.xcconfig).
+set -euo pipefail
+cd "$(dirname "$0")"
+NE="${1:-hepsi}"
+dur() { echo "✗ $*" >&2; exit 1; }
+adim() { printf '\n▶ %s\n' "$1"; }
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  adim "En güncel kod (git pull)"
+  git pull --ff-only || dur "git pull başarısız (yerel değişiklik var mı? git status)"
+fi
+
+if [[ "$NE" == hepsi || "$NE" == sunucu ]]; then
+  adim "Sunucu (Hetzner)"
+  ./scripts/deploy-hetzner.sh
+fi
+
+if [[ "$NE" == hepsi || "$NE" == iphone ]]; then
+  adim "iPhone"
+  command -v xcodebuild >/dev/null || dur "Xcode kurulu değil"
+  grep -Eq '^DEVELOPMENT_TEAM *= *[A-Z0-9]{10}' Config/Local.xcconfig 2>/dev/null \
+    || dur "Config/Local.xcconfig içinde DEVELOPMENT_TEAM yok. Bir kez: echo 'DEVELOPMENT_TEAM = 3Q2KZ332U9' > Config/Local.xcconfig"
+  JSON=$(mktemp)
+  xcrun devicectl list devices --json-output "$JSON" >/dev/null 2>&1 || true
+  CIHAZ=$(/usr/bin/python3 - "$JSON" <<'PY'
+import json, sys
+try:
+    devs = json.load(open(sys.argv[1]))["result"]["devices"]
+except Exception:
+    devs = []
+for d in devs:
+    hw, cp = d.get("hardwareProperties", {}), d.get("connectionProperties", {})
+    if hw.get("platform") == "iOS" and cp.get("pairingState") == "paired":
+        name = d.get("deviceProperties", {}).get("name", "iPhone").replace(" ", "_")
+        print(d["identifier"], hw.get("udid", ""), name)
+        break
+PY
+)
+  rm -f "$JSON"
+  if [[ -z "$CIHAZ" ]]; then
+    [[ "$NE" == iphone ]] && dur "Bağlı iPhone bulunamadı (kablo, kilit açık, 'Bu bilgisayara güven', Geliştirici Modu)"
+    echo "Bağlı iPhone yok; telefon adımı atlandı. Telefonu bağlayınca: ./deploy iphone"
+  else
+    read -r IDENT UDID NAME <<< "$CIHAZ"
+    echo "Cihaz: ${NAME//_/ } ($UDID)"
+    mkdir -p build/logs
+    # Release yapılandırması: canlı sunucuyu (https://fit.178.105.131.113.nip.io) kullanır.
+    echo "Derleniyor (ilk seferde birkaç dakika sürebilir)…"
+    if ! xcodebuild -project OvisFit.xcodeproj -scheme OvisFit -configuration Release \
+        -destination "id=$UDID" -derivedDataPath build/device -allowProvisioningUpdates build \
+        > build/logs/iphone-build.log 2>&1; then
+      grep -E "error:" build/logs/iphone-build.log | head -20
+      dur "derleme başarısız (ayrıntı: build/logs/iphone-build.log)"
+    fi
+    APP=build/device/Build/Products/Release-iphoneos/OvisFit.app
+    BUNDLE=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP/Info.plist")
+    xcrun devicectl device install app --device "$IDENT" "$APP" >/dev/null || dur "telefona kurulamadı (telefonun kilidi açık mı?)"
+    xcrun devicectl device process launch --device "$IDENT" "$BUNDLE" >/dev/null 2>&1 || true
+    echo "✓ iPhone'a kuruldu ve açıldı: $BUNDLE"
+  fi
+fi
+printf '\n✓ Deploy tamam\n'

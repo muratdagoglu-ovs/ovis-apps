@@ -15,6 +15,16 @@ Prototip/
 └─ scripts/                  simulator.sh, testflight.sh, ExportOptions-TestFlight.plist
 ```
 
+## Deploy (tek komut, Xcode'u açmadan)
+
+```bash
+./deploy            # en güncel kod + Hetzner sunucusu + bağlı iPhone'a kurulum
+./deploy sunucu     # yalnızca sunucu
+./deploy iphone     # yalnızca iPhone
+```
+
+Bir kerelik hazırlık: depoyu git ile indir (`git clone https://github.com/muratdagoglu-ovs/ovis-apps.git ~/ovis-apps`), `ovisfit/Prototip` klasöründe `Config/Local.xcconfig` dosyasına `DEVELOPMENT_TEAM = 3Q2KZ332U9` yaz. Sonraki her güncellemede yalnızca `./deploy`.
+
 ## Tek komutla derleme ve teslim (Mac)
 
 ```bash
@@ -132,7 +142,7 @@ Varsayılan sunucu `root@178.105.131.113`, adres `https://fit.178.105.131.113.ni
 - İlk kurulumda Anthropic API anahtarını sorar (ekranda görünmez); anahtar yalnızca sunucuda `/opt/ovisfit/.env` içinde durur.
 - Güncelleme için aynı komut; her güncellemede önceki sürüm `backups/` altına alınır.
 
-Başka bir sunucu için: `./scripts/deploy-hetzner.sh root@IP alan.adi`. Docker kullanan boş bir sunucu için `deploy/hetzner/docker-compose.yml` (Caddy ile otomatik HTTPS) de hazır.
+Başka bir sunucu için: `./scripts/deploy-hetzner.sh root@IP alan.adi`. Docker kullanan boş bir sunucu için `docker/docker-compose.yml` (Caddy ile otomatik HTTPS) de hazır.
 
 ## Fiziksel iPhone ve TestFlight
 

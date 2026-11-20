@@ -11,11 +11,27 @@ final class OnboardingUITests: XCTestCase {
         app.launchArguments = ["-OvisResetData"]
         app.launch()
 
-        // 1 · Profil: kutulara gerçekten yazılabiliyor mu?
-        type(app, "field.name", "Murat")
-        type(app, "field.age", "35")
-        type(app, "field.height", "175")
-        type(app, "field.weight", "72.5")
+        // 1 · Profil: kutulara gerçekten yazılabiliyor mu? İlk kutuya dokunulur,
+        // sonrakilere klavyenin üstündeki "Sonraki" ile geçilir (kullanıcının yaptığı gibi).
+        let name = app.textFields["field.name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 8), "İsim kutusu yok")
+        name.tap()
+        name.typeText("Murat")
+        XCTAssertEqual(name.value as? String, "Murat", "İsim kutusuna yazılamadı")
+        for (id, text) in [("field.age", "35"), ("field.height", "175"), ("field.weight", "72.5")] {
+            app.buttons["Sonraki"].tap()
+            let field = app.textFields[id]
+            field.typeText(text)
+            XCTAssertEqual(field.value as? String, text, "\(id) kutusuna yazılamadı")
+        }
+        app.buttons["Bitti"].tap()
+
+        // Kilo kutusuna klavye kapalıyken doğrudan dokunup düzeltme de çalışmalı
+        let weight = app.textFields["field.weight"]
+        weight.tap()
+        weight.typeText("0")   // 72.50
+        XCTAssertEqual(weight.value as? String, "72.50")
+        app.buttons["Bitti"].tap()
         tapButton(app, containing: "Devam et")
 
         // 2 · Hedef
