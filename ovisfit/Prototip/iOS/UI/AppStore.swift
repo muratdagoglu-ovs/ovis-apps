@@ -455,7 +455,17 @@ final class AppStore: ObservableObject {
     }
 
     var bundledServerAddress: String {
-        (Bundle.main.object(forInfoDictionaryKey: "OvisAPIBaseURL") as? String) ?? ""
+        let configured = (Bundle.main.object(forInfoDictionaryKey: "OvisAPIBaseURL") as? String) ?? ""
+        #if DEBUG && !targetEnvironment(simulator)
+        // Xcode'dan telefona kurulan geliştirme sürümü: derleme adımı Mac'in yerel adresini DevServer.txt'ye yazar.
+        if configured.hasPrefix("http://127.0.0.1"),
+           let url = Bundle.main.url(forResource: "DevServer", withExtension: "txt"),
+           let text = try? String(contentsOf: url, encoding: .utf8) {
+            let dev = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !dev.isEmpty { return dev }
+        }
+        #endif
+        return configured
     }
 
     var serverAddress: String { serverOverride.isEmpty ? bundledServerAddress : serverOverride }

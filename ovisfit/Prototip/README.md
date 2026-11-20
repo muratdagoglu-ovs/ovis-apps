@@ -93,7 +93,7 @@ Simülatöre tabak fotoğrafı eklemek için fotoğrafı Simülatör penceresine
 3. `OvisFit.xcodeproj`'u aç. **OvisFit** ve **OvisFitWidgets** hedeflerinin **Signing & Capabilities** bölümünde **Team** olarak ekibini seç. Bundle ID `com.ovis.fit` olarak gelir; otomatik imzalama HealthKit yetkisini App ID'ye kendisi ekler.
 4. Üstteki cihaz listesinden iPhone'unu seçip **Run (⌘R)**.
 
-Debug derlemesinde bir derleme adımı ("Geliştirme sunucusu adresi") Mac'in Bonjour adını uygulamaya yazar. Telefon ilk bağlantıda **Yerel Ağ** izni ister. Debug sürümü yerel ağdaki http adreslerini kabul eder; Release/TestFlight sürümü yalnızca HTTPS kabul eder.
+Debug derlemesinde bir derleme adımı ("Geliştirme sunucusu adresi") Mac'in Bonjour adını uygulama paketindeki `DevServer.txt` dosyasına yazar. Telefon ilk bağlantıda **Yerel Ağ** izni ister. Debug sürümü yerel ağdaki http adreslerini kabul eder; Release/TestFlight sürümü yalnızca HTTPS kabul eder.
 
 Aynı projeden **Product › Archive › Distribute App › App Store Connect** ile TestFlight'a da yükleyebilirsin. Bunun için Release sunucu adresini `Config/Local.xcconfig`'de vermen gerekir.
 
