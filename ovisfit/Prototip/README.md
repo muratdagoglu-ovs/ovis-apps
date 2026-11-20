@@ -119,17 +119,20 @@ Aynı projeden **Product › Archive › Distribute App › App Store Connect** 
 
 **İmza notu:** Widget hedefi ve App Group nedeniyle Bundle ID artık `OVIS_BUNDLE_ID` ile verilir (varsayılan `com.ovis.fit`). Xcode'da her iki hedef için de (OvisFit ve OvisFitWidgets) Team seçilmelidir. Otomatik imzalama App Group'u ve `com.ovis.fit.widgets` kimliğini kendisi oluşturur.
 
-## Sunucuyu Hetzner'e kurma
+## Sunucuyu Hetzner'e kurma (Ovis CRM ile aynı sunucu)
 
-1. Alan adı sağlayıcında bir alt alan adı aç (ör. `fit-api.alanadin.com`) ve **A kaydını** Hetzner sunucusunun IP'sine yönlendir.
-2. Hetzner Cloud Console › Firewall'da **80** ve **443** portlarının açık olduğundan emin ol.
-3. Mac'te, `Prototip` klasöründe:
-   ```bash
-   ./scripts/deploy-hetzner.sh root@SUNUCU_IP fit-api.alanadin.com
-   ```
-   İlk kurulumda Anthropic API anahtarı sorulur (ekranda görünmez, yalnızca sunucuda `/opt/ovisfit/.env` içinde durur). Docker yoksa kurulur; 80/443 boşsa Caddy ile otomatik HTTPS açılır, doluysa mevcut nginx için eklenecek blok ekrana basılır.
-4. Güncelleme için aynı komutu tekrar çalıştır.
-5. `Config/Base.xcconfig` içindeki `OVIS_API_BASE_URL[config=Release]` satırına `https:/$()/fit-api.alanadin.com` yaz; TestFlight sürümü bu adresi kullanır.
+Mac'te, `Prototip` klasöründe (CRM'i canlıya aldığın gibi SSH ile):
+```bash
+./scripts/deploy-hetzner.sh
+```
+Varsayılan sunucu `root@178.105.131.113`, adres `https://fit.178.105.131.113.nip.io`. Betik:
+- `/opt/ovisfit` klasörüne, `ovisfit` kullanıcısıyla, `ovisfit` systemd servisi olarak kurar (127.0.0.1:8787).
+- Nginx'e ayrı bir site dosyası ekler, `nginx -t` geçmezse geri alır; Let's Encrypt sertifikasını yalnızca bu adres için alır.
+- CRM'e (`/opt/ovis-crm`, `ovis-crm` servisi, mevcut Nginx siteleri) dokunmaz; Docker kurmaz.
+- İlk kurulumda Anthropic API anahtarını sorar (ekranda görünmez); anahtar yalnızca sunucuda `/opt/ovisfit/.env` içinde durur.
+- Güncelleme için aynı komut; her güncellemede önceki sürüm `backups/` altına alınır.
+
+Başka bir sunucu için: `./scripts/deploy-hetzner.sh root@IP alan.adi`. Docker kullanan boş bir sunucu için `deploy/hetzner/docker-compose.yml` (Caddy ile otomatik HTTPS) de hazır.
 
 ## Fiziksel iPhone ve TestFlight
 

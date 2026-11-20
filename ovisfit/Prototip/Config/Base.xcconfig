@@ -10,9 +10,9 @@ CURRENT_PROJECT_VERSION = 1
 
 // Simülatör aynı Mac'teki Node sunucusunu kullanır. ("//" xcconfig'de yorum olduğu için $() ile bölünür.)
 OVIS_API_BASE_URL = http:/$()/127.0.0.1:8787
-// Release/TestFlight derlemesinde varsayılan adres yok: Local.xcconfig'de HTTPS adresi ver
-// veya kullanıcı Profil › Analiz sunucusu bölümünden girsin.
-OVIS_API_BASE_URL[config=Release] =
+// Release/TestFlight: Hetzner'deki canlı analiz sunucusu (scripts/deploy-hetzner.sh ile kurulur).
+// Local.xcconfig'de başka bir HTTPS adresiyle değiştirilebilir.
+OVIS_API_BASE_URL[config=Release] = https:/$()/fit.178.105.131.113.nip.io
 
 #include? "Local.xcconfig"
 
