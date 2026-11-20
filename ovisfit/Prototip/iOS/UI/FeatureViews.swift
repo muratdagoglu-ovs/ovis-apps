@@ -364,10 +364,7 @@ struct BarcodeView: View {
                              text: "Bu cihazda veya simülatörde canlı barkod tarama yok. Barkod numarasını aşağıya yazabilirsin.")
                 }
                 HStack(spacing: 10) {
-                    TextField("Barkod numarası (8–14 hane)", text: $code)
-                        .keyboardType(.numberPad)
-                        .padding(.horizontal, 14).frame(minHeight: 48)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    BoxField("Barkod numarası (8–14 hane)", text: $code, keyboard: .numberPad, identifier: "field.barcode")
                     Button("Ara") { Task { await lookup(code) } }
                         .buttonStyle(PillButtonStyle(selected: true))
                         .disabled(!OpenFoodFacts.isValidBarcode(code) || loading)

@@ -24,6 +24,25 @@ public enum NumberInput {
     }
 }
 
+extension NumberInput {
+    /// Tam sayı girişi: "2100", "2.100", "2 100" (binlik ayırıcı), isteğe bağlı birim ("2.100 kcal").
+    public static func parseInteger(_ text: String) -> Int? {
+        var s = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        while let last = s.last, last.isLetter { s.removeLast() }
+        s = s.trimmingCharacters(in: .whitespaces)
+        guard !s.isEmpty else { return nil }
+        let compact = s.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\u{00A0}", with: "")
+        let groups = compact.split(separator: ".", omittingEmptySubsequences: false)
+        if groups.count > 1 {
+            // Yalnızca geçerli binlik gruplama kabul edilir: 2.100, 12.500
+            guard (1...3).contains(groups[0].count), groups.dropFirst().allSatisfy({ $0.count == 3 }) else { return nil }
+        }
+        let digits = groups.joined()
+        guard !digits.isEmpty, digits.allSatisfy(\.isNumber) else { return nil }
+        return Int(digits)
+    }
+}
+
 public enum ProfileField: String, CaseIterable, Sendable {
     case name, age, height, weight
 }

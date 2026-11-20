@@ -569,3 +569,16 @@ final class FeatureTests: XCTestCase {
         XCTAssertNil(f.protein); XCTAssertFalse(f.hasMacros)
     }
 }
+
+final class InputTests: XCTestCase {
+    func testIntegerWithTurkishThousands() {
+        XCTAssertEqual(NumberInput.parseInteger("2100"), 2100)
+        XCTAssertEqual(NumberInput.parseInteger("2.100"), 2100)
+        XCTAssertEqual(NumberInput.parseInteger(" 2 100 kcal"), 2100)
+        XCTAssertEqual(NumberInput.parseInteger("12.500"), 12500)
+        XCTAssertNil(NumberInput.parseInteger("2.1"))
+        XCTAssertNil(NumberInput.parseInteger("21.00"))
+        XCTAssertNil(NumberInput.parseInteger("abc"))
+        XCTAssertNil(NumberInput.parseInteger(""))
+    }
+}

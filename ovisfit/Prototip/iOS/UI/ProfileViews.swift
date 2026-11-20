@@ -36,9 +36,9 @@ final class ProfileEditor: ObservableObject {
     }
 
     var manualTarget: Int? {
-        guard useManualTarget, let v = NumberInput.parse(manualTargetText)?.value,
-              EnergyCalculator.manualRange.contains(Int(v)) else { return nil }
-        return Int(v)
+        guard useManualTarget, let v = NumberInput.parseInteger(manualTargetText),
+              EnergyCalculator.manualRange.contains(v) else { return nil }
+        return v
     }
     var manualTargetInvalid: Bool { useManualTarget && manualTarget == nil }
 
@@ -64,7 +64,6 @@ struct ProfileFormView: View {
     @StateObject private var editor = ProfileEditor()
     @State private var loaded = false
     @State private var showGoal = false
-    @FocusState private var focus: ProfileField?
 
     var body: some View {
         ScreenScroll {
@@ -117,7 +116,7 @@ struct ProfileFormView: View {
         .safeAreaInset(edge: .bottom) {
             BottomAction {
                 Button {
-                    focus = nil
+                    Keyboard.dismiss()
                     if editor.validateStepOne() { showGoal = true }
                 } label: {
                     Label("Devam et", systemImage: "chevron.right").labelStyle(TrailingIconLabelStyle())
@@ -132,7 +131,7 @@ struct ProfileFormView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Bitti") { focus = nil }
+                Button("Bitti") { Keyboard.dismiss() }
             }
         }
         .onAppear {
@@ -146,16 +145,10 @@ struct ProfileFormView: View {
                        keyboard: UIKeyboardType) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Color.ofInk)
-            TextField(prompt, text: text)
-                .keyboardType(keyboard)
-                .textContentType(f == .name ? .givenName : nil)
-                .autocorrectionDisabled(f != .name)
-                .focused($focus, equals: f)
-                .padding(.horizontal, 14)
-                .frame(minHeight: 48)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(editor.errors[f] == nil ? Color.ofDivider : Color.ofWarn, lineWidth: 1))
+                .accessibilityHidden(true)
+            BoxField(prompt, text: text, keyboard: keyboard,
+                     contentType: f == .name ? .givenName : nil, autocorrect: f == .name,
+                     invalid: editor.errors[f] != nil, identifier: "field.\(f.rawValue)")
                 .accessibilityLabel(title)
             if let error = editor.errors[f] {
                 Text(error).font(.footnote).foregroundStyle(Color.ofWarn)
@@ -244,10 +237,8 @@ struct GoalView: View {
             SectionHeader("Günlük enerji hedefi")
             Toggle("Hekim/diyetisyen planım var, hedefi kendim gireceğim", isOn: $editor.useManualTarget)
             if editor.useManualTarget {
-                TextField("kcal (1.000–5.000)", text: $editor.manualTargetText)
-                    .keyboardType(.numberPad)
-                    .padding(.horizontal, 14).frame(minHeight: 48)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                BoxField("kcal (1.000–5.000)", text: $editor.manualTargetText, keyboard: .numberPad,
+                         invalid: editor.manualTargetInvalid, identifier: "field.manualTarget")
                     .accessibilityLabel("Günlük enerji hedefi, kilokalori")
                 if editor.manualTargetInvalid {
                     Text("1.000 ile 5.000 kcal arasında bir değer gir.").font(.footnote).foregroundStyle(Color.ofWarn)
@@ -271,6 +262,12 @@ struct GoalView: View {
             }
         }
         .sheet(isPresented: $showMethod) { MethodSheet(estimate: estimate).environmentObject(store) }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Bitti") { Keyboard.dismiss() }
+            }
+        }
         .secondaryScreen()
     }
 
@@ -384,10 +381,8 @@ struct ServerSettingsSection: View {
             SectionHeader("Analiz sunucusu")
             Text("Xcode'dan kurulan geliştirme sürümü Mac'teki sunucuyu kendiliğinden kullanır (aynı Wi‑Fi). TestFlight sürümü için erişilebilir bir HTTPS adresi gerekir. API anahtarı yalnızca sunucuda tutulur.")
                 .font(.footnote).foregroundStyle(Color.ofMuted)
-            TextField(store.bundledServerAddress.isEmpty ? "https://sunucu.ornek.com" : store.bundledServerAddress, text: $text)
-                .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                .padding(.horizontal, 14).frame(minHeight: 48)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            BoxField(store.bundledServerAddress.isEmpty ? "https://sunucu.ornek.com" : store.bundledServerAddress,
+                     text: $text, keyboard: .URL, identifier: "field.server")
                 .accessibilityLabel("Analiz sunucusu adresi")
             HStack {
                 Button("Kaydet") {

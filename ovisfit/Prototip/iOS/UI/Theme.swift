@@ -340,3 +340,60 @@ enum TRDate {
         }
     }
 }
+
+// MARK: - Giriş kutusu
+
+/// Kutunun tamamı dokunulabilir metin alanı. SwiftUI'da TextField yalnızca yazı satırına
+/// dokunulunca odaklanır; kutunun boş kısmına dokunmak da klavyeyi açmalı.
+struct BoxField: View {
+    let prompt: String
+    @Binding var text: String
+    let keyboard: UIKeyboardType
+    let contentType: UITextContentType?
+    let autocorrect: Bool
+    let invalid: Bool
+    let identifier: String
+    @FocusState private var focused: Bool
+
+    init(_ prompt: String, text: Binding<String>, keyboard: UIKeyboardType = .default,
+         contentType: UITextContentType? = nil, autocorrect: Bool = false, invalid: Bool = false,
+         identifier: String = "") {
+        self.prompt = prompt
+        self._text = text
+        self.keyboard = keyboard
+        self.contentType = contentType
+        self.autocorrect = autocorrect
+        self.invalid = invalid
+        self.identifier = identifier
+    }
+
+    var body: some View {
+        TextField(prompt, text: $text)
+            .keyboardType(keyboard)
+            .textContentType(contentType)
+            .autocorrectionDisabled(!autocorrect)
+            .textInputAutocapitalization(keyboard == .default ? .words : .never)
+            .focused($focused)
+            .font(.body)
+            .foregroundStyle(Color.ofInk)
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+            .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(invalid ? Color.ofWarn : (focused ? Color.ofDeep : Color.ofDivider),
+                            lineWidth: focused || invalid ? 1.5 : 1)
+                    .allowsHitTesting(false)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .onTapGesture { focused = true }
+            .accessibilityIdentifier(identifier)
+    }
+}
+
+enum Keyboard {
+    /// Açık klavyeyi kapatır (sayı klavyesinde "Bitti" tuşu yoktur).
+    static func dismiss() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}

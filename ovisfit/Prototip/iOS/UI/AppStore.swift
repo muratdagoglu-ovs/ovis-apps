@@ -281,6 +281,14 @@ final class AppStore: ObservableObject {
         let before = weights
         weights = ProgressReport.addWeight(kg, on: date, to: weights, calendar: calendar)
         repo.saveWeights(weights)
+        // En güncel tartım profildeki kiloyu da günceller: enerji, makro ve hareket hedefleri yeni kiloya göre hesaplanır.
+        if var p = profile, let latest = weights.max(by: { $0.date < $1.date }),
+           calendar.isDate(latest.date, inSameDayAs: date), abs(p.weightKg - latest.kg) >= 0.05 {
+            p.weightKg = latest.kg
+            repo.saveProfile(p)
+            profile = p
+            publishWidget()
+        }
         if healthWrite {
             let replaced = before.filter { old in !weights.contains { $0.id == old.id } }
             let added = weights.filter { new in !before.contains { $0.id == new.id } }
