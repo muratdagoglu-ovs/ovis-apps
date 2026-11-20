@@ -11,6 +11,9 @@ concurrency:
   group: ovisfit-ios-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-15
@@ -87,6 +90,20 @@ jobs:
             xcrun simctl terminate "$UDID" "$BUNDLE" || true
           done
           ls -la screenshots
+
+      - name: Ekran görüntülerini ci-screenshots dalına kaydet
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          set -e
+          TMP=$(mktemp -d)
+          cp screenshots/*.png "$TMP"/
+          cd "$TMP"
+          git init -q -b ci-screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf '# Ovis Fit simülatör görüntüleri\n\nKaynak commit: %s\n' "$GITHUB_SHA" > README.md
+          git add -A && git commit -qm "Simülatör görüntüleri ($GITHUB_SHA)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-screenshots
 
       - name: Cihaz derlemesi (imzasız, derleme kontrolü)
         run: |
