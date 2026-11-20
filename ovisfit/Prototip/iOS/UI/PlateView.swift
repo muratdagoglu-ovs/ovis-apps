@@ -207,9 +207,10 @@ struct PhotoView: View {
             ScreenHeading(kicker: "Tabak analizi", plain: "Tabağını ", accent: "göster.")
             photoArea
 
+            let pickTitle = model.image == nil ? "Fotoğraf seç" : "Başka fotoğraf seç"
             HStack(spacing: 8) {
                 PhotosPicker(selection: $model.pickerItem, matching: .images, photoLibrary: .shared()) {
-                    Label(model.image == nil ? "Fotoğraf seç" : "Başka fotoğraf seç", systemImage: "photo")
+                    Label(pickTitle, systemImage: "photo")
                 }
                 .buttonStyle(PillButtonStyle(selected: false))
                 if cameraAvailable {
