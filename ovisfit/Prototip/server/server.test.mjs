@@ -79,7 +79,7 @@ test('analyze sends the photo to Claude Haiku with structured output', async () 
 });
 
 test('analyze handles refusal, truncation and empty plates', async () => {
-  await assert.rejects(analyze(jpeg, fakeClient({ stop_reason: 'refusal', parsed_output: null, usage: {} })), AnalysisError);
+  assert.deepEqual(await analyze(jpeg, fakeClient({ stop_reason: 'refusal', parsed_output: null, usage: {} })), { foods: [], mode: 'live' });
   await assert.rejects(analyze(jpeg, fakeClient({ stop_reason: 'max_tokens', parsed_output: null, usage: {} })), AnalysisError);
   const empty = await analyze(jpeg, fakeClient({ stop_reason: 'end_turn', parsed_output: { foods: [] }, usage: {} }));
   assert.deepEqual(empty, { foods: [], mode: 'live' });

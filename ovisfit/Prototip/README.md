@@ -71,7 +71,7 @@ Simülatöre tabak fotoğrafı eklemek için fotoğrafı Simülatör penceresine
   - İlk çalışmada ham veriyi `*.backup` anahtarlarına bir kez kopyalar.
   - Bozuk tekil kayıtları atlar, sıfır gramlık porsiyonları ve boş öğünleri temizler, yinelenen kimlikleri tekilleştirir.
   - Sıvı hedefini aralığa sıkıştırır. Prototipteki `of.goal` değeri ilk profilde varsayılan hedef olur.
-- İlk kullanımda hiçbir örnek veri gerçek günlüğe yazılmaz. Uygulamada demo modu yoktur; fotoğraf analizi her zaman gerçek Claude yanıtıdır.
+- İlk kullanımda hiçbir örnek veri gerçek günlüğe yazılmaz. Sunucunun demo modu yoktur; fotoğraf analizi her zaman gerçek Claude yanıtıdır (uygulama, eski sürümlerden kalmış "Demo" etiketli kayıtları yalnızca okuyup etiketli gösterir).
 
 ## Sunucu
 
@@ -99,7 +99,7 @@ Aynı projeden **Product › Archive › Distribute App › App Store Connect** 
 
 ## Adım, yakılan enerji ve günlük denge
 
-- **Apple Sağlık (HealthKit):** Uygulama adım sayısını ve aktif enerjiyi (iPhone ve Apple Watch) yalnızca okur. Veri cihazda kalır, yazma yapılmaz.
+- **Apple Sağlık (HealthKit):** Uygulama adım sayısını ve aktif enerjiyi (iPhone ve Apple Watch) okur. Profil › Bağlantılar'dan açılırsa öğün enerjisi/makroları, su ve kilo Sağlık'a yazılır; silinen kayıtlar ve "Tüm verilerimi sil" Ovis Fit'in yazdığı örnekleri de siler. Veri cihazda kalır.
 - **Sistem hedefleri** (`Targets.daily`): Adım ve hareketle yakılacak enerji hedefini aktivite düzeyi, hedef, yaş ve hareket kısıtlarından sistem belirler; kullanıcı girmez. Bugün ekranındaki ⓘ simgesi açıklamayı gösterir.
 - **Yakılan enerji:** Dinlenme (Mifflin-St Jeor) + aktif enerji. Aktif enerji için Apple Sağlık değeri varsa o kullanılır. Yoksa adım × kilo × 0,0005 ve tamamlanan hareketin MET değeriyle tahmin edilir; yürüyüş adımlarda sayıldığı için iki kez eklenmez.
 - **Tahmini kilo değişimi:** (alınan − yakılan) / 7.700 kcal. Gün sonu varsayımıyla hesaplanır ve "≈ 27 g verme yönünde" gibi gösterilir. Haftalık özette yalnızca öğün kaydı olan günler sayılır ve sonuç tartıdaki değişimle yan yana verilir.
@@ -132,7 +132,7 @@ Aynı projeden **Product › Archive › Distribute App › App Store Connect** 
 
 Hazır olanlar:
 - `ITSAppUsesNonExemptEncryption = NO` (yalnızca HTTPS kullanılıyor)
-- HealthKit yetkisi (`iOS/OvisFit.entitlements`, yalnızca okuma) ve Sağlık izin metni
+- HealthKit yetkisi (`iOS/OvisFit.entitlements`, okuma ve isteğe bağlı yazma), Sağlık okuma ve yazma izin metinleri
 - `PrivacyInfo.xcprivacy`: UserDefaults gerekçesi CA92.1 ve analiz için gönderilen fotoğraf
 - Kamera izin metni
 - Yalnızca dikey yönlendirme, 1024 px uygulama simgesi

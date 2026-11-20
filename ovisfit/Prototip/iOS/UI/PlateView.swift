@@ -80,6 +80,7 @@ final class PlateFlowModel: ObservableObject {
 
     private func startNewPhoto() {
         task?.cancel()
+        loadToken = UUID()   // önceki (yavaş) galeri yüklemesi sonucu artık kullanılmaz
         draft = nil; resultToken = nil; isSample = false; saving = false
         mealID = UUID()
     }
@@ -218,7 +219,7 @@ struct PhotoView: View {
                         .buttonStyle(PillButtonStyle(selected: false))
                 }
             }
-            .disabled(model.phase == .uploading)
+            .disabled(model.phase == .uploading || model.phase == .preparing)
 
             status
 

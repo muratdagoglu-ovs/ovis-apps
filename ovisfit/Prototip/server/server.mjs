@@ -50,7 +50,8 @@ export class AnalysisError extends Error {}
 
 let client;
 function anthropic() {
-  client ??= new Anthropic({ timeout: 55_000, maxRetries: 2 });
+  // Toplam süre uygulamanın 65 sn'lik bekleme süresinin altında kalmalı: 2 deneme × 25 sn.
+  client ??= new Anthropic({ timeout: 25_000, maxRetries: 1 });
   return client;
 }
 
@@ -70,7 +71,8 @@ export async function analyze(bytes, api = anthropic()) {
       ]
     }]
   });
-  if (response.stop_reason === 'refusal') throw new AnalysisError('refusal');
+  // Model tabağı değerlendirmeyi reddederse uygulama "tabak tanınamadı" gösterir (sunucu hatası değil).
+  if (response.stop_reason === 'refusal') return { foods: [], mode: 'live' };
   if (response.stop_reason === 'max_tokens') throw new AnalysisError('max_tokens');
   const parsed = response.parsed_output;
   // Modelin ürettiği değerleri sınırlarla tekrar doğrula; geçersiz öğeleri at.

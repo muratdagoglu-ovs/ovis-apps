@@ -22,6 +22,11 @@ final class Router: ObservableObject {
     @Published var water: [Route] = []
     @Published var growth: [Route] = []
 
+    func resetAll() {
+        today = []; plan = []; water = []; growth = []
+        tab = .today
+    }
+
     func popToRoot() {
         switch tab {
         case .today: today = []
@@ -189,6 +194,7 @@ final class AppStore: ObservableObject {
     /// Aynı kimlikle ikinci kayıt reddedilir (art arda Kaydet dokunuşları).
     @discardableResult
     func addMeal(_ meal: Meal) -> Bool {
+        now = Date()
         guard repo.addMeal(meal) else { return false }
         meals = repo.meals
         if healthWrite { Task { await health.save(meal) } }
@@ -208,7 +214,7 @@ final class AppStore: ObservableObject {
     func deleteMeal(_ id: UUID) {
         repo.deleteMeal(id)
         meals = repo.meals
-        if healthWrite { Task { await health.deleteSamples(id) } }
+        if healthRequested || healthWrite { Task { await health.deleteSamples(id) } }
         publishWidget()
     }
 
@@ -219,6 +225,7 @@ final class AppStore: ObservableObject {
     }
 
     func addDrink(_ amount: Int, kind: String) {
+        now = Date()
         let drink = Drink(amount: amount, kind: kind)
         drinks.append(drink)
         repo.saveDrinks(drinks)
@@ -231,16 +238,18 @@ final class AppStore: ObservableObject {
     }
 
     func undoDrink() {
+        now = Date()
         let removed = lastDrinkToday
         drinks = Hydration.undoLast(drinks, on: now, calendar: calendar)
         repo.saveDrinks(drinks)
-        if healthWrite, let removed { Task { await health.deleteSamples(removed.id) } }
+        if healthRequested || healthWrite, let removed { Task { await health.deleteSamples(removed.id) } }
         publishWidget()
     }
 
     func setFluidTarget(_ value: Int) {
         repo.fluidTarget = value
         fluidTarget = repo.fluidTarget
+        publishWidget()
     }
 
     func setFluidRestricted(_ value: Bool) {
@@ -302,7 +311,7 @@ final class AppStore: ObservableObject {
     func deleteWeight(_ id: UUID) {
         weights.removeAll { $0.id == id }
         repo.saveWeights(weights)
-        if healthWrite { Task { await health.deleteSamples(id) } }
+        if healthRequested || healthWrite { Task { await health.deleteSamples(id) } }
     }
 
     var weeklyReport: WeeklyReport {
@@ -417,18 +426,52 @@ final class AppStore: ObservableObject {
     // MARK: Alışveriş listesi
 
     func shoppingList(days: Int) -> [ShoppingItem] {
-        let plans = (0..<days).compactMap { calendar.date(byAdding: .day, value: $0, to: now).flatMap { plan(for: $0) } }
+        let start = shoppingStartDate(days: days)
+        let plans = (0..<days).compactMap { calendar.date(byAdding: .day, value: $0, to: start).flatMap { plan(for: $0) } }
         return Shopping.list(from: plans, db: db)
     }
 
-    private var shoppingKey: String { DayKey.string(for: ProgressReport.week(containing: now, calendar: calendar).0, calendar: calendar) }
-    var checkedShopping: Set<String> { Set(shoppingChecked[shoppingKey] ?? []) }
+    /// İşaretler listenin kendisine bağlıdır (başlangıç günü + gün sayısı); son 4 liste saklanır.
+    private func shoppingKey(days: Int) -> String {
+        let start = shoppingStart[days] ?? DayKey.string(for: now, calendar: calendar)
+        return "\(start)/\(days)"
+    }
+    /// Kullanıcı listeyi ilk açtığı gün listenin başlangıcı olur; işaretler gün dönümünde kaybolmaz.
+    private var shoppingStart: [Int: String] {
+        var map: [Int: String] = [:]
+        for key in shoppingChecked.keys.sorted() {
+            let parts = key.split(separator: "/")
+            if parts.count == 2, let d = Int(parts[1]) { map[d] = String(parts[0]) }
+        }
+        return map
+    }
+    func checkedShopping(days: Int) -> Set<String> { Set(shoppingChecked[shoppingKey(days: days)] ?? []) }
 
-    func toggleShopping(_ id: String) {
-        var set = checkedShopping
+    func toggleShopping(_ id: String, days: Int) {
+        let key = shoppingKey(days: days)
+        var set = checkedShopping(days: days)
         if set.contains(id) { set.remove(id) } else { set.insert(id) }
-        shoppingChecked = [shoppingKey: Array(set).sorted()]   // eski haftalar temizlenir
-        repo.saveShoppingChecked(shoppingChecked)
+        var all = shoppingChecked
+        all[key] = Array(set).sorted()
+        for old in all.keys.sorted().dropLast(4) where old != key { all[old] = nil }
+        shoppingChecked = all
+        repo.saveShoppingChecked(all)
+    }
+
+    /// Listeyi bugünden yeniden başlatır (işaretler temizlenir).
+    func restartShopping(days: Int) {
+        var all = shoppingChecked
+        for key in all.keys where key.hasSuffix("/\(days)") { all[key] = nil }
+        all["\(DayKey.string(for: now, calendar: calendar))/\(days)"] = []
+        shoppingChecked = all
+        repo.saveShoppingChecked(all)
+    }
+
+    func shoppingStartDate(days: Int) -> Date {
+        guard let s = shoppingStart[days] else { return now }
+        let parts = s.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return now }
+        return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2])) ?? now
     }
 
     // MARK: Widget
@@ -499,6 +542,11 @@ final class AppStore: ObservableObject {
     }
 
     func eraseAll() {
+        if healthRequested || healthWrite {
+            let ids = meals.map(\.id) + drinks.map(\.id) + weights.map(\.id)
+            let sync = health
+            Task { for id in ids { await sync.deleteSamples(id) } }
+        }
         for key in [StoreKey.meals, StoreKey.drinks, StoreKey.profile, StoreKey.weights, StoreKey.activities,
                     StoreKey.swaps, StoreKey.fluidTarget, StoreKey.fluidRestricted, StoreKey.legacyGoal,
                     StoreKey.mealsBackup, StoreKey.drinksBackup, StoreKey.steps, StoreKey.activeEnergy,

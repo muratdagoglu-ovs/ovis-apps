@@ -401,6 +401,8 @@ struct ServerSettingsSection: View {
 }
 
 struct DataSection: View {
+    @EnvironmentObject private var router: Router
+    @EnvironmentObject private var plate: PlateFlowModel
     @EnvironmentObject private var store: AppStore
     @State private var confirm = false
     var body: some View {
@@ -412,7 +414,11 @@ struct DataSection: View {
                 .frame(minHeight: 44)
         }
         .confirmationDialog("Tüm kayıtlar bu cihazdan silinsin mi?", isPresented: $confirm, titleVisibility: .visible) {
-            Button("Sil", role: .destructive) { store.eraseAll() }
+            Button("Sil", role: .destructive) {
+                plate.reset()
+                router.resetAll()
+                store.eraseAll()
+            }
         }
     }
 }

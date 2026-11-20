@@ -520,7 +520,7 @@ struct ShoppingView: View {
 
     var body: some View {
         let items = store.shoppingList(days: days)
-        let checked = store.checkedShopping
+        let checked = store.checkedShopping(days: days)
         let groups = Dictionary(grouping: items, by: \.group)
         let order = ["sebze", "protein", "tahil", "diger", "sos"].filter { groups[$0] != nil }
 
@@ -530,8 +530,10 @@ struct ShoppingView: View {
                 Text("3 gün").tag(3); Text("7 gün").tag(7)
             }
             .pickerStyle(.segmented)
-            Text("Bugünden itibaren \(days) günlük planın malzemeleri; porsiyonların hedefine göre hesaplanır. Plan değişirse liste de değişir.")
+            Text("\(TRDate.short(store.shoppingStartDate(days: days), "d MMMM")) itibarıyla \(days) günlük planın malzemeleri; porsiyonların hedefine göre hesaplanır. İşaretlerin liste yenilenene kadar korunur.")
                 .font(.footnote).foregroundStyle(Color.ofMuted)
+            Button("Listeyi bugünden yenile") { store.restartShopping(days: days) }
+                .buttonStyle(LinkButtonStyle())
             if items.isEmpty {
                 InfoCard(title: "Liste boş", text: "Tercihlerine uygun planlanmış öğün bulunamadı.")
             }
@@ -539,7 +541,7 @@ struct ShoppingView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(Shopping.groupTitle(g)).font(.headline).padding(.bottom, 4)
                     ForEach(groups[g] ?? []) { item in
-                        Button { store.toggleShopping(item.id) } label: {
+                        Button { store.toggleShopping(item.id, days: days) } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: checked.contains(item.id) ? "checkmark.circle.fill" : "circle")
                                     .font(.title3).foregroundStyle(Color.ofDeep)
