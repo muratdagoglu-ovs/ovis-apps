@@ -82,6 +82,13 @@ jobs:
           sleep 6
           xcrun simctl io "$UDID" screenshot screenshots/00-ilk-acilis-profil.png
           xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          # Açılış adımları (isim, kilo çarkı, hedef kartları, özet)
+          for n in 1 5 7 9; do
+            xcrun simctl launch "$UDID" "$BUNDLE" -OvisResetData -OvisOnboardingStep $n
+            sleep 5
+            xcrun simctl io "$UDID" screenshot "screenshots/01-acilis-adim-$n.png"
+            xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          done
           # Tasarım karşılaştırması: ayrı geçici örnek veriyle (gerçek günlüğe yazılmaz)
           for s in today analysis water; do
             xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen "$s"

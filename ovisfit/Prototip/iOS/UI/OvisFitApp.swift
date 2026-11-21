@@ -26,9 +26,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if store.profile == nil {
-                NavigationStack {
-                    ProfileFormView(mode: .onboarding)
-                }
+                OnboardingView()
             } else {
                 MainTabs()
             }

@@ -11,33 +11,30 @@ final class OnboardingUITests: XCTestCase {
         app.launchArguments = ["-OvisResetData"]
         app.launch()
 
-        // 1 · Profil: kutulara gerçekten yazılabiliyor mu? İlk kutuya dokunulur,
-        // sonrakilere klavyenin üstündeki "Sonraki" ile geçilir (kullanıcının yaptığı gibi).
-        let name = app.textFields["field.name"]
+        // 1 · Adım adım açılış: isim klavyeyle, yaş/boy/kilo çarkla, diğerleri kartlarla
+        tapButton(app, containing: "Başlayalım")
+        let name = app.textFields["onb.name"]
         XCTAssertTrue(name.waitForExistence(timeout: 8), "İsim kutusu yok")
         name.tap()
         name.typeText("Murat")
         XCTAssertEqual(name.value as? String, "Murat", "İsim kutusuna yazılamadı")
-        for (id, text) in [("field.age", "35"), ("field.height", "175"), ("field.weight", "72.5")] {
-            app.buttons["Sonraki"].tap()
-            let field = app.textFields[id]
-            field.typeText(text)
-            XCTAssertEqual(field.value as? String, text, "\(id) kutusuna yazılamadı")
-        }
-        app.buttons["Bitti"].tap()
-
-        // Kilo kutusuna klavye kapalıyken doğrudan dokunup düzeltme de çalışmalı
-        let weight = app.textFields["field.weight"]
-        weight.tap()
-        weight.typeText("0")   // 72.50
-        XCTAssertEqual(weight.value as? String, "72.50")
-        app.buttons["Bitti"].tap()
-        tapButton(app, containing: "Devam et")
-
-        // 2 · Hedef
-        XCTAssertTrue(app.staticTexts["Kilomu korumak"].waitForExistence(timeout: 5), "Hedef ekranı açılmadı")
+        tapButton(app, containing: "Devam")                      // → cinsiyet
+        tapButton(app, containing: "Erkek")
+        tapButton(app, containing: "Devam")                      // → yaş
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "35")
+        tapButton(app, containing: "Devam")                      // → boy
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "175")
+        tapButton(app, containing: "Devam")                      // → kilo
+        app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "72")
+        app.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: ",5")
+        tapButton(app, containing: "Devam")                      // → hareket
+        tapButton(app, containing: "Devam")                      // → hedef
         tapButton(app, containing: "Kilo vermek")
-        tapButton(app, containing: "Onayla ve planımı gör")
+        tapButton(app, containing: "Devam")                      // → beslenme
+        tapButton(app, containing: "Süt ve süt ürünleri")
+        tapButton(app, containing: "Devam")                      // → özet
+        XCTAssertTrue(element(app, "Günlük enerji hedefin").waitForExistence(timeout: 5), "Özet ekranı yok")
+        tapButton(app, containing: "Planımı oluştur")
 
         // 3 · Bugün ekranı ve isim
         XCTAssertTrue(app.tabBars.buttons["Bugün"].waitForExistence(timeout: 8), "Ana sekmelere geçilmedi")
