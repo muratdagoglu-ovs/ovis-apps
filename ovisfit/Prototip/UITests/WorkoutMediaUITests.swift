@@ -17,6 +17,8 @@ final class WorkoutMediaUITests: XCTestCase {
 
         for (place, names) in [("Salon", gym), ("Ev", home)] {
             tap(app, place)
+            XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", names[0])).firstMatch
+                .waitForExistence(timeout: 5), "\(place) programı açılmadı")
             for name in names {
                 tap(app, name)                                          // satır → detay
                 XCTAssertTrue(element(app, "Ovi ile \(name)").waitForExistence(timeout: 8), "\(name): kapak/demo yok")
@@ -65,7 +67,11 @@ final class WorkoutMediaUITests: XCTestCase {
     private func tap(_ app: XCUIApplication, _ text: String) {
         let b = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
         XCTAssertTrue(b.waitForExistence(timeout: 8), "'\(text)' yok")
-        if !b.isHittable { app.swipeUp() }
+        // Ekran dışındaysa önce yukarı, sonra aşağı kaydırarak görünür yap.
+        var tries = 0
+        while !b.isHittable && tries < 3 { app.swipeDown(); tries += 1 }
+        tries = 0
+        while !b.isHittable && tries < 4 { app.swipeUp(); tries += 1 }
         b.tap()
     }
 }
