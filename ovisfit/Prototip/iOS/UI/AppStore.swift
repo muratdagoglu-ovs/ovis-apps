@@ -2,6 +2,7 @@ import SwiftUI
 import WidgetKit
 
 enum Route: Hashable {
+    case exercise(String)
     case reminders
     case barcode
     case shopping
@@ -15,15 +16,16 @@ enum Route: Hashable {
 
 @MainActor
 final class Router: ObservableObject {
-    enum Tab: Hashable { case today, plan, water, growth }
+    enum Tab: Hashable { case today, plan, workout, water, growth }
     @Published var tab: Tab = .today
     @Published var today: [Route] = []
     @Published var plan: [Route] = []
+    @Published var workout: [Route] = []
     @Published var water: [Route] = []
     @Published var growth: [Route] = []
 
     func resetAll() {
-        today = []; plan = []; water = []; growth = []
+        today = []; plan = []; workout = []; water = []; growth = []
         tab = .today
     }
 
@@ -31,6 +33,7 @@ final class Router: ObservableObject {
         switch tab {
         case .today: today = []
         case .plan: plan = []
+        case .workout: workout = []
         case .water: water = []
         case .growth: growth = []
         }
@@ -39,6 +42,7 @@ final class Router: ObservableObject {
         switch tab {
         case .today: if !today.isEmpty { today.removeLast() }
         case .plan: if !plan.isEmpty { plan.removeLast() }
+        case .workout: if !workout.isEmpty { workout.removeLast() }
         case .water: if !water.isEmpty { water.removeLast() }
         case .growth: if !growth.isEmpty { growth.removeLast() }
         }
@@ -47,6 +51,7 @@ final class Router: ObservableObject {
         switch tab {
         case .today: today.append(route)
         case .plan: plan.append(route)
+        case .workout: workout.append(route)
         case .water: water.append(route)
         case .growth: growth.append(route)
         }
@@ -261,8 +266,23 @@ final class AppStore: ObservableObject {
 
     // MARK: Hareket
 
+    /// Günlük hareket (yürüyüş vb.); salon/ev antrenmanı ayrı tutulur.
     var todayActivity: ActivityRecord? {
-        activities.first { calendar.isDate($0.date, inSameDayAs: now) }
+        activities.first { calendar.isDate($0.date, inSameDayAs: now) && $0.optionID != "workout" }
+    }
+
+    var todayWorkout: ActivityRecord? {
+        activities.first { calendar.isDate($0.date, inSameDayAs: now) && $0.optionID == "workout" }
+    }
+
+    /// Antrenman günde bir kez kaydedilir; aynı gün tekrar yapılırsa süre güncellenir.
+    func completeWorkout(_ record: ActivityRecord) {
+        now = Date()
+        var list = activities.filter { !(calendar.isDate($0.date, inSameDayAs: now) && $0.optionID == "workout") }
+        list.append(record)
+        repo.saveActivities(list)
+        activities = list
+        publishWidget()
     }
 
     var movementOptions: [MovementOption] {
@@ -278,9 +298,11 @@ final class AppStore: ObservableObject {
 
     @discardableResult
     func complete(_ option: MovementOption) -> Bool {
-        guard let updated = MovementPlanner.record(option, on: Date(), existing: activities, calendar: calendar) else { return false }
-        repo.saveActivities(updated)
-        activities = updated
+        let others = activities.filter { $0.optionID == "workout" }
+        let moves = activities.filter { $0.optionID != "workout" }
+        guard let updated = MovementPlanner.record(option, on: Date(), existing: moves, calendar: calendar) else { return false }
+        activities = updated + others
+        repo.saveActivities(activities)
         return true
     }
 

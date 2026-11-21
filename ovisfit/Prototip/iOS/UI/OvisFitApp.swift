@@ -65,6 +65,12 @@ struct MainTabs: View {
             .tabItem { Label("Plan", systemImage: "calendar") }
             .tag(Router.Tab.plan)
 
+            NavigationStack(path: $router.workout) {
+                WorkoutView().withRoutes()
+            }
+            .tabItem { Label("Antrenman", systemImage: "dumbbell") }
+            .tag(Router.Tab.workout)
+
             NavigationStack(path: $router.water) {
                 WaterView().withRoutes()
             }
@@ -87,6 +93,11 @@ struct MainTabs: View {
         switch args[i + 1] {
         case "water":
             router.tab = .water
+        case "workout", "player":
+            router.tab = .workout
+        case "exercise":
+            router.tab = .workout
+            router.workout = [.exercise("squat")]
         case "analysis":
             router.tab = .today
             plate.useSample()
@@ -105,6 +116,7 @@ extension View {
         navigationDestination(for: Route.self) { route in
             switch route {
             case .profile: ProfileFormView(mode: .edit)
+            case .exercise(let id): ExerciseDetailView(exerciseID: id)
             case .reminders: RemindersView()
             case .barcode: BarcodeView()
             case .shopping: ShoppingView()

@@ -582,3 +582,36 @@ final class InputTests: XCTestCase {
         XCTAssertNil(NumberInput.parseInteger(""))
     }
 }
+
+final class WorkoutTests: XCTestCase {
+    func testProgramByPlaceAndLimits() {
+        XCTAssertEqual(ExerciseLibrary.todaysWorkout(place: .gym, limits: []).map(\.id), ["squat", "latpulldown", "dbbench"])
+        XCTAssertEqual(ExerciseLibrary.todaysWorkout(place: .home, limits: []).map(\.id), ["pushup", "glutebridge"])
+        XCTAssertEqual(ExerciseLibrary.todaysWorkout(place: .gym, limits: [.knee]).map(\.id), ["latpulldown", "dbbench"])
+        let minutes = ExerciseLibrary.estimatedMinutes(ExerciseLibrary.todaysWorkout(place: .gym, limits: []))
+        XCTAssertTrue((15...40).contains(minutes), "\(minutes)")
+    }
+
+    func testSessionFlow() {
+        let ex = ExerciseLibrary.todaysWorkout(place: .home, limits: [])
+        var s = WorkoutSession(exercises: ex)
+        XCTAssertEqual(s.totalSets, 6)
+        s.finishSet()
+        XCTAssertEqual(s.phase, .rest(remaining: 60))
+        s.tick(59); XCTAssertEqual(s.phase, .rest(remaining: 1))
+        s.tick(); XCTAssertEqual(s.phase, .set); XCTAssertEqual(s.set, 2)
+        s.finishSet(); s.skipRest(); s.finishSet()
+        XCTAssertEqual(s.current?.id, "glutebridge"); XCTAssertEqual(s.set, 1)
+        s.skipExercise()
+        XCTAssertEqual(s.phase, .finished)
+        XCTAssertEqual(s.completedSets, 3)
+        XCTAssertEqual(s.progress, 0.5, accuracy: 0.001)
+        s.finishSet()   // bittiğinde etkisiz
+        XCTAssertEqual(s.completedSets, 3)
+    }
+
+    func testWorkoutEnergy() {
+        let r = ActivityRecord(date: Date(), optionID: "workout", title: "Ev antrenmanı", minutes: 30)
+        XCTAssertEqual(ActivityEnergy.fromActivity(r, weightKg: 70), 140)   // (5-1) × 70 × 0,5
+    }
+}

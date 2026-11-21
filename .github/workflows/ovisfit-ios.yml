@@ -45,6 +45,14 @@ jobs:
       - name: Mantık testleri (swift test)
         run: swift test
 
+      - name: Tüm Swift dosyaları Xcode projesinde mi?
+        run: |
+          missing=0
+          for f in $(find iOS Widgets UITests -name '*.swift'); do
+            grep -q "path = $(basename "$f");" OvisFit.xcodeproj/project.pbxproj || { echo "::error::Projede yok: $f"; missing=1; }
+          done
+          exit $missing
+
       - name: Simülatör seç ve aç
         run: |
           UDID=$(xcrun simctl list devices available -j | python3 -c '
@@ -90,7 +98,7 @@ jobs:
             xcrun simctl terminate "$UDID" "$BUNDLE" || true
           done
           # Tasarım karşılaştırması: ayrı geçici örnek veriyle (gerçek günlüğe yazılmaz)
-          for s in today analysis water; do
+          for s in today analysis water workout exercise player; do
             xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen "$s"
             sleep 7
             xcrun simctl io "$UDID" screenshot "screenshots/$s.png"

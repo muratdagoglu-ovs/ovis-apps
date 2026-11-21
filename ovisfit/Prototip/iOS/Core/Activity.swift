@@ -75,7 +75,7 @@ public enum ActivityEnergy {
     public static let kcalPerStepPerKg = 0.0005
 
     /// Tamamlanan hareket seçeneklerinin MET değerleri (Ainsworth ve ark., Compendium of Physical Activities 2011).
-    public static let mets: [String: Double] = ["walk": 3.5, "chair": 2.0, "mobility": 2.5, "band": 3.5, "rest": 1.0]
+    public static let mets: [String: Double] = ["walk": 3.5, "chair": 2.0, "mobility": 2.5, "band": 3.5, "rest": 1.0, "workout": 5.0]
 
     public static func fromSteps(_ steps: Int, weightKg: Double) -> Int {
         Int((Double(steps) * weightKg * kcalPerStepPerKg).rounded())
