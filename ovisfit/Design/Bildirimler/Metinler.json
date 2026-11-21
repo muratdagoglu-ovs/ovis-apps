@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ogun",
+    "title": "Öğle yemeğinde ne var?",
+    "body": "Tabağının fotoğrafını çek, porsiyonlara Ovi ile birlikte bak.",
+    "route": "plate"
+  },
+  {
+    "id": "su",
+    "title": "Bir bardak su molası",
+    "body": "Suyunu içtiysen günlüğüne ekleyebilirsin.",
+    "route": "water"
+  },
+  {
+    "id": "hareket",
+    "title": "Harekete zaman ayıralım mı?",
+    "body": "Bugünkü hareket planına göz at.",
+    "route": "movement"
+  }
+]

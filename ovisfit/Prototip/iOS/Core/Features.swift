@@ -213,13 +213,35 @@ public enum Gamification {
 public struct ReminderSettings: Codable, Equatable, Sendable {
     public var meals = true
     public var water = true
+    public var movement = true
     public var weigh = true
     /// Gün içindeki dakika.
+    public var movementMinutes = 18 * 60
     public var weighMinutes = 21 * 60
     public var waterStart = 10 * 60
     public var waterEnd = 20 * 60
     public var waterEveryMinutes = 120
     public init() {}
+
+    // Eski kayıtlarda olmayan alanlar varsayılanla doldurulur (ayarlar kaybolmaz).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = ReminderSettings()
+        meals = try c.decodeIfPresent(Bool.self, forKey: .meals) ?? d.meals
+        water = try c.decodeIfPresent(Bool.self, forKey: .water) ?? d.water
+        movement = try c.decodeIfPresent(Bool.self, forKey: .movement) ?? d.movement
+        weigh = try c.decodeIfPresent(Bool.self, forKey: .weigh) ?? d.weigh
+        movementMinutes = try c.decodeIfPresent(Int.self, forKey: .movementMinutes) ?? d.movementMinutes
+        weighMinutes = try c.decodeIfPresent(Int.self, forKey: .weighMinutes) ?? d.weighMinutes
+        waterStart = try c.decodeIfPresent(Int.self, forKey: .waterStart) ?? d.waterStart
+        waterEnd = try c.decodeIfPresent(Int.self, forKey: .waterEnd) ?? d.waterEnd
+        waterEveryMinutes = try c.decodeIfPresent(Int.self, forKey: .waterEveryMinutes) ?? d.waterEveryMinutes
+    }
+}
+
+/// Bildirime dokununca açılacak ekran.
+public enum ReminderRoute: String, Sendable {
+    case plate, water, movement, growth
 }
 
 public struct ReminderItem: Equatable, Sendable {
@@ -227,33 +249,51 @@ public struct ReminderItem: Equatable, Sendable {
     public let minutes: Int
     public let title: String
     public let body: String
+    public let route: ReminderRoute
 }
 
 public enum Reminders {
-    /// Günlük tekrarlayan yerel bildirim listesi. Hekim sıvı kısıtlaması varsa su teşviki gönderilmez.
+    public static let mealBody = "Tabağının fotoğrafını çek, porsiyonlara Ovi ile birlikte bak."
+
+    public static func mealTitle(_ slot: MealSlot) -> String {
+        switch slot {
+        case .breakfast: return "Kahvaltıda ne var?"
+        case .lunch: return "Öğle yemeğinde ne var?"
+        case .snack: return "Ara öğününde ne var?"
+        case .dinner: return "Akşam yemeğinde ne var?"
+        }
+    }
+
+    /// Günlük tekrarlayan yerel bildirim listesi. Hekim sıvı kısıtlaması varsa su hatırlatması planlanmaz.
     public static func plan(_ s: ReminderSettings, profile: Profile?, fluidRestricted: Bool) -> [ReminderItem] {
         var items: [ReminderItem] = []
         if s.meals, let p = profile {
             for slot in p.mealTimes.slots {
                 items.append(ReminderItem(id: "meal.\(slot.rawValue)", minutes: p.mealTimes.minutes(for: slot),
-                                          title: "\(slot.title) zamanı",
-                                          body: "Tabağını kaydetmeyi unutma. Fotoğraf, barkod veya favorilerinden tek dokunuşla ekleyebilirsin."))
+                                          title: mealTitle(slot), body: mealBody, route: .plate))
             }
         }
         if s.water && !fluidRestricted && s.waterEveryMinutes >= 30 {
             var m = s.waterStart
             while m <= s.waterEnd {
-                items.append(ReminderItem(id: "water.\(m)", minutes: m, title: "Su molası",
-                                          body: "Bir bardak su içip kaydetmeye ne dersin?"))
+                items.append(ReminderItem(id: "water.\(m)", minutes: m, title: "Bir bardak su molası",
+                                          body: "Suyunu içtiysen günlüğüne ekleyebilirsin.", route: .water))
                 m += s.waterEveryMinutes
             }
         }
+        if s.movement {
+            items.append(ReminderItem(id: "movement", minutes: s.movementMinutes, title: "Harekete zaman ayıralım mı?",
+                                      body: "Bugünkü hareket planına göz at.", route: .movement))
+        }
         if s.weigh {
             items.append(ReminderItem(id: "weigh", minutes: s.weighMinutes, title: "Tartı zamanı",
-                                      body: "Bugünkü kilonu kaydet; haftalık eğrin güncellensin. Her gün aynı saatte tartılmak karşılaştırmayı kolaylaştırır."))
+                                      body: "Bugünkü kilonu kaydet; haftalık eğrin güncellensin.", route: .growth))
         }
         return items
     }
+
+    /// Kimliği su hatırlatmasına ait mi (kısıtlama açılınca bekleyenler iptal edilir).
+    public static func isWater(_ id: String) -> Bool { id.hasPrefix("water.") }
 }
 
 // MARK: - 2 · Barkod (Open Food Facts)

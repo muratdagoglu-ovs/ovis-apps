@@ -363,13 +363,54 @@ enum ReminderScheduler {
             content.title = item.title
             content.body = item.body
             content.sound = .default
+            content.userInfo = ["route": item.route.rawValue]
+            content.threadIdentifier = item.route.rawValue
             let trigger = UNCalendarNotificationTrigger(
                 dateMatching: DateComponents(hour: item.minutes / 60, minute: item.minutes % 60), repeats: true)
             try? await center.add(UNNotificationRequest(identifier: prefix + item.id, content: content, trigger: trigger))
         }
     }
 
+    /// Hekim sıvı kısıtlaması açılınca bekleyen su hatırlatmalarını hemen iptal eder.
+    static func cancelWater() async {
+        let center = UNUserNotificationCenter.current()
+        let ids = await center.pendingNotificationRequests().map(\.identifier)
+            .filter { $0.hasPrefix(prefix) && Reminders.isWater(String($0.dropFirst(prefix.count))) }
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
     static func isDenied() async -> Bool {
         await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied
+    }
+}
+
+
+// MARK: - Bildirime dokununca ilgili ekranı aç
+
+final class NotificationRouter: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationRouter()
+    @Published var pending: ReminderRoute?
+
+    // Uygulama açıkken de bildirim afiş olarak görünsün.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .list, .sound])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let raw = response.notification.request.content.userInfo["route"] as? String
+        if let raw, let route = ReminderRoute(rawValue: raw) {
+            DispatchQueue.main.async { self.pending = route }
+        }
+        completionHandler()
+    }
+}
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate = NotificationRouter.shared
+        return true
     }
 }

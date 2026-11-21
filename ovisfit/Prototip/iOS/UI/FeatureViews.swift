@@ -214,7 +214,7 @@ struct ReminderSetupCard: View {
         if !store.remindersConfigured && store.profile != nil {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Hatırlatmaları aç").font(.headline)
-                Text("Öğün saatlerinde, gün içinde su için ve akşam tartı için kısa bildirimler. İstediğin zaman değiştirebilirsin.")
+                Text("Öğün saatlerinde tabağın, gün içinde su, akşamüstü hareket ve tartı için kısa bildirimler. Bildirime dokununca ilgili ekran açılır.")
                     .font(.footnote).foregroundStyle(Color.ofMuted)
                 HStack(spacing: 16) {
                     Button { store.setReminders(ReminderSettings()) } label: { Label("Aç", systemImage: "bell") }
@@ -266,6 +266,11 @@ struct RemindersView: View {
                     .frame(minHeight: 44)
                     DatePicker("Başlangıç", selection: time($settings.waterStart), displayedComponents: .hourAndMinute)
                     DatePicker("Bitiş", selection: time($settings.waterEnd), displayedComponents: .hourAndMinute)
+                }
+                Divider().overlay(Color.ofDivider).padding(.vertical, 6)
+                Toggle("Hareket", isOn: $settings.movement).frame(minHeight: 48)
+                if settings.movement {
+                    DatePicker("Saat", selection: time($settings.movementMinutes), displayedComponents: .hourAndMinute)
                 }
                 Divider().overlay(Color.ofDivider).padding(.vertical, 6)
                 Toggle("Tartı", isOn: $settings.weigh).frame(minHeight: 48)

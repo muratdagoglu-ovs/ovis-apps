@@ -530,8 +530,13 @@ final class FeatureTests: XCTestCase {
         XCTAssertEqual(items.filter { $0.id.hasPrefix("meal.") }.count, 4)
         XCTAssertEqual(items.filter { $0.id.hasPrefix("water.") }.map(\.minutes), [600, 720, 840, 960, 1080, 1200])
         XCTAssertEqual(items.first { $0.id == "weigh" }?.minutes, 21 * 60)
+        XCTAssertEqual(items.first { $0.id == "meal.lunch" }?.title, "Öğle yemeğinde ne var?")
+        XCTAssertEqual(items.first { $0.id == "meal.lunch" }?.route, .plate)
+        XCTAssertEqual(items.first { $0.id == "water.600" }?.title, "Bir bardak su molası")
+        XCTAssertEqual(items.first { $0.id == "movement" }?.route, .movement)
+        XCTAssertEqual(items.first { $0.id == "movement" }?.minutes, 18 * 60)
         XCTAssertTrue(Reminders.plan(settings, profile: sampleProfile(), fluidRestricted: true).allSatisfy { !$0.id.hasPrefix("water.") })
-        settings.meals = false; settings.weigh = false; settings.water = false
+        settings.meals = false; settings.weigh = false; settings.water = false; settings.movement = false
         XCTAssertTrue(Reminders.plan(settings, profile: sampleProfile(), fluidRestricted: false).isEmpty)
     }
 
@@ -613,5 +618,14 @@ final class WorkoutTests: XCTestCase {
     func testWorkoutEnergy() {
         let r = ActivityRecord(date: Date(), optionID: "workout", title: "Ev antrenmanı", minutes: 30)
         XCTAssertEqual(ActivityEnergy.fromActivity(r, weightKg: 70), 140)   // (5-1) × 70 × 0,5
+    }
+}
+
+final class ReminderMigrationTests: XCTestCase {
+    func testOldSettingsKeepValues() throws {
+        let old = #"{"meals":false,"water":true,"weigh":true,"weighMinutes":480,"waterStart":600,"waterEnd":1200,"waterEveryMinutes":60}"#
+        let s = try JSONDecoder().decode(ReminderSettings.self, from: Data(old.utf8))
+        XCTAssertFalse(s.meals); XCTAssertEqual(s.weighMinutes, 480); XCTAssertEqual(s.waterEveryMinutes, 60)
+        XCTAssertTrue(s.movement); XCTAssertEqual(s.movementMinutes, 18 * 60)
     }
 }

@@ -260,6 +260,7 @@ final class AppStore: ObservableObject {
     func setFluidRestricted(_ value: Bool) {
         repo.fluidRestricted = value
         fluidRestricted = value
+        if value { Task { await ReminderScheduler.cancelWater() } }
         rescheduleReminders()
         publishWidget()
     }

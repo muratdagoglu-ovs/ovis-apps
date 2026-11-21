@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct OvisFitApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = AppStore()
     @StateObject private var router = Router()
     @StateObject private var plate = PlateFlowModel()
@@ -84,6 +85,29 @@ struct MainTabs: View {
             .tag(Router.Tab.growth)
         }
         .task { await openScreenshotScreen() }
+        .onReceive(NotificationRouter.shared.$pending) { route in
+            guard let route else { return }
+            open(route)
+            NotificationRouter.shared.pending = nil
+        }
+    }
+
+    /// Bildirime dokununca: öğün → tabak kaydı, su → su günlüğü, hareket → hareket planı.
+    private func open(_ route: ReminderRoute) {
+        switch route {
+        case .plate:
+            router.tab = .today
+            router.today = [.photo]
+        case .water:
+            router.tab = .water
+            router.water = []
+        case .movement:
+            router.tab = .today
+            router.today = [.movement]
+        case .growth:
+            router.tab = .growth
+            router.growth = []
+        }
     }
 
     /// Yalnızca `-OvisScreenshotData -OvisScreen <ekran>` ile: tasarım karşılaştırma görüntüleri için.
