@@ -2,5 +2,5 @@
 
 #app,.nav{background:#f5f7f3}.hero{background:linear-gradient(125deg,#103b39,#195957)}.ring b{background:#144744}
 .nav button{min-width:0;flex:1}.nav button.sel svg,.cta.lime{background:#b9e9d6}
-.training-cover{background:#103f3d url('../Prototip/iOS/Resources/Assets.xcassets/ovi-training-studio.imageset/studio.jpg') center/cover;color:white;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:18px;border-radius:20px;min-height:142px;margin:14px 0}
+.training-cover{background:#103f3d center/cover;color:white;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:18px;border-radius:20px;min-height:142px;margin:14px 0}
 .training-cover b{font-size:27px}.workout-card{margin:12px 0;border-radius:18px;background:white;border:1px solid #d6e2dc;overflow:hidden}.workout-card video{display:block;width:100%;aspect-ratio:4/3;background:#e4ede3}.workout-card div{padding:12px 15px;display:flex;flex-direction:column;gap:4px}.workout-card span{font-size:13px;color:#53665d}

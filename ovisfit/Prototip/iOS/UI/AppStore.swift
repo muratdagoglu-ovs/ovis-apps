@@ -591,7 +591,13 @@ final class AppStore: ObservableObject {
 /// Tasarım referanslarıyla karşılaştırma görüntüleri için; gerçek günlüğe asla dokunmaz.
 enum ScreenshotData {
     static func seed(_ repo: Repository, db: FoodDatabase) {
-        var p = Profile(name: "Murat", age: 35, heightCm: 175, weightKg: 75, sex: .female, activity: .moderate, goal: .maintain)
+        // -OvisSex female|male|unspecified: eğitmen görsellerini her profil için kontrol etmek üzere
+        let args = ProcessInfo.processInfo.arguments
+        let sex: Sex = args.firstIndex(of: "-OvisSex").flatMap { i -> Sex? in
+            guard i + 1 < args.count else { return nil }
+            switch args[i + 1] { case "male": return .male; case "unspecified": return .unspecified; default: return .female }
+        } ?? .female
+        var p = Profile(name: "Murat", age: 35, heightCm: 175, weightKg: 75, sex: sex, activity: .moderate, goal: .maintain)
         p.manualTarget = 2100
         p.confirmedAt = Date()
         repo.saveProfile(p)

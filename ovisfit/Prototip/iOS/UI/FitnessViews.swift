@@ -2,10 +2,37 @@ import SwiftUI
 import AVFoundation
 import UIKit
 
+private enum WorkoutTrainer: String, CaseIterable {
+    case female, male
+
+    var title: String { self == .female ? "Kadın eğitmen" : "Erkek eğitmen" }
+
+    func media(_ exerciseID: String) -> String { "trainer-" + rawValue + "-" + exerciseID }
+    var studio: String { "trainer-" + rawValue + "-studio" }
+}
+
+private struct TrainerSelection: DynamicProperty {
+    @EnvironmentObject private var store: AppStore
+    @AppStorage("of.workoutTrainerPreference") var preference = WorkoutTrainer.female
+
+    var usesPreference: Bool { (store.profile?.sex ?? .unspecified) == .unspecified }
+
+    var current: WorkoutTrainer {
+        switch store.profile?.sex ?? .unspecified {
+        case .female: return .female
+        case .male: return .male
+        case .unspecified: return preference
+        }
+    }
+}
+
 private struct ExercisePoster: View {
+    private var selection = TrainerSelection()
     let id: String
+    init(id: String) { self.id = id }
+
     var body: some View {
-        Image("ovi-" + id)
+        Image(selection.current.media(id))
             .resizable()
             .scaledToFit()
             .accessibilityHidden(true)
@@ -61,6 +88,7 @@ private struct ExerciseMovie: UIViewRepresentable {
 }
 
 private struct ExerciseDemo: View {
+    private var selection = TrainerSelection()
     let exercise: Exercise
     let resting: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -68,8 +96,13 @@ private struct ExerciseDemo: View {
     @State private var userWantsPlayback: Bool?
     @State private var didPlay = false
 
+    init(exercise: Exercise, resting: Bool) {
+        self.exercise = exercise
+        self.resting = resting
+    }
+
     var body: some View {
-        let url = Bundle.main.url(forResource: exercise.id, withExtension: "mp4",
+        let url = Bundle.main.url(forResource: selection.current.media(exercise.id), withExtension: "mp4",
                                   subdirectory: "WorkoutMedia")
         let playing = (userWantsPlayback ?? !reduceMotion) && !resting && scenePhase == .active
         ZStack(alignment: .bottomTrailing) {
@@ -91,7 +124,7 @@ private struct ExerciseDemo: View {
                         .background(Color.ofDeep.opacity(0.92), in: Circle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(playing ? "Gösterimi duraklat" : "Ovi ile hareketi izle")
+                .accessibilityLabel(playing ? "Gösterimi duraklat" : "Egzersiz gösterimini oynat")
                 .padding(10)
             }
         }
@@ -101,13 +134,14 @@ private struct ExerciseDemo: View {
             userWantsPlayback = nil
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Ovi ile " + exercise.name)
+        .accessibilityLabel(exercise.name + ", " + selection.current.title)
     }
 }
 
 // MARK: - Antrenman sekmesi
 
 struct WorkoutView: View {
+    private var selection = TrainerSelection()
     @EnvironmentObject private var store: AppStore
     @AppStorage("of.workoutPlace") private var placeRaw = WorkoutPlace.gym.rawValue
     @State private var showPlayer = false
@@ -133,6 +167,15 @@ struct WorkoutView: View {
                 }
             }
 
+            if selection.usesPreference {
+                Picker("Eğitmen", selection: selection.$preference) {
+                    ForEach(WorkoutTrainer.allCases, id: \.self) { trainer in
+                        Text(trainer.title).tag(trainer)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
             VStack(alignment: .leading, spacing: 9) {
                 Kicker(place == .gym ? "Salon · tüm vücut" : "Ev · ekipmansız",
                        color: Color.white.opacity(0.87))
@@ -151,7 +194,7 @@ struct WorkoutView: View {
             .foregroundStyle(.white)
             .background {
                 GeometryReader { geometry in
-                    Image("ovi-training-studio").resizable().scaledToFill()
+                    Image(selection.current.studio).resizable().scaledToFill()
                         .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
                         .clipped()
                 }

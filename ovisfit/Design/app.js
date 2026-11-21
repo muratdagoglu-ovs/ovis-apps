@@ -37,18 +37,30 @@ const exercises = [
 ];
 let workoutPlace = 'Salon';
 const mediaRoot = '../Prototip/iOS/Resources/';
+let trainerPreference = 'female';
+function workoutTrainer() {
+    if (S.sex === 'Kadın') return 'female';
+    if (S.sex === 'Erkek') return 'male';
+    return trainerPreference;
+}
 function workoutPreview() {
+    const trainer = workoutTrainer();
+    const prefix = 'trainer-' + trainer + '-';
+    const chooser = ['Kadın', 'Erkek'].includes(S.sex) ? '' :
+        '<div class="seg">' + [['female','Kadın eğitmen'],['male','Erkek eğitmen']].map(([key,label]) =>
+            act(label, "trainerPreference='" + key + "';render()", key === trainer ? 'on' : '')
+        ).join('') + '</div>';
     const list = exercises.filter(ex => ex.place === workoutPlace);
     const filters = ['Salon', 'Ev'].map(place =>
         act(place, "workoutPlace='" + place + "'; render()", place === workoutPlace ? 'on' : '')
     ).join('');
     const cards = list.map(ex => {
-        const jpg = mediaRoot + 'Assets.xcassets/ovi-' + ex.id + '.imageset/poster.jpg';
-        return '<section class="workout-card"><video controls playsinline muted loop preload="none" poster="' + jpg + '" aria-label="Ovi ile ' + ex.name + '"><source src="' + mediaRoot + 'WorkoutMedia/' + ex.id + '.mp4" type="video/mp4"></video><div><strong>' + ex.name + '</strong><span>' + ex.sets + '</span></div></section>';
+        const jpg = mediaRoot + 'Assets.xcassets/' + prefix + ex.id + '.imageset/poster.jpg';
+        return '<section class="workout-card"><video controls playsinline muted loop preload="none" poster="' + jpg + '" aria-label="Hareket gösterimi: ' + ex.name + '"><source src="' + mediaRoot + 'WorkoutMedia/' + prefix + ex.id + '.mp4" type="video/mp4"></video><div><strong>' + ex.name + '</strong><span>' + ex.sets + '</span></div></section>';
     }).join('');
     return '<div class="bar">' + word + avatar + '</div>' +
         heading('Antrenman', 'Bugünün <span class="serif">programı.</span>') + '<div class="seg">' + filters + '</div>' +
-        '<div class="training-cover"><b>' + workoutPlace + '</b><span>' + list.length + ' hareket · ' + (list.length * 3) + ' set</span></div>' + cards;
+        chooser + '<div class="training-cover" style="background-image:url(' + mediaRoot + 'Assets.xcassets/' + prefix + 'studio.imageset/studio.jpg)"><b>' + workoutPlace + '</b><span>' + list.length + ' hareket · ' + (list.length * 3) + ' set</span></div>' + cards;
 }
 
 function render(){

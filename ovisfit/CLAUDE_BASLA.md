@@ -1,10 +1,19 @@
 # Ovis Fit · iPhone uygulamasını tamamla
 
+## Google Flow antrenman videoları
+
+[Ovis Fit · Antrenman Stüdyosu](https://flow.google.com/project/45996646-5896-4bab-a6e7-a315561fe8a0)
+
+Kadın ve erkek eğitmen için squat, lat pulldown, dambıl bench press, şınav ve kalça köprüsü referansları `Design/Google_Flow` klasöründe. Her JPEG, tek bir eğitmenin başlangıç ve hareket pozunu birlikte gösterir.
+
+Paketin mevcut MP4’leri pozları sırasıyla gösteren önizlemelerdir. Flow çıktıları hazır olduğunda her tekrarı ve ekipmanı görsel olarak kontrol et. Onaylanan her videoyu referansla aynı kök ada sahip MP4 olarak Prototip/iOS/Resources/WorkoutMedia içine yerleştir. Örneğin kadın şınav videosunun adı `trainer-female-pushup.mp4`. Hareket listesi, detay ve aktif set ekranlarının dosya eşleşmesini koru.
+
+
 ## Bu sürümün teslim kontrolü
 
 OvisFit klasöründe çalış. Prototip/OvisFit.xcodeproj içindeki mevcut uygulamayı Xcode ile bir iPhone simülatöründe derle. Güncel tasarım ve davranış için projedeki SwiftUI ekranlarını esas al. Aşağıdaki önceki ekran tarifleri ürünün geçmiş tasarım referansıdır.
 
-Antrenman sekmesinde Salon ve Ev programlarını aç. Beş hareketin kapaklarını kontrol et. Her birinde detay ve aktif set ekranını açarak yerel MP4 dosyasının çevrimdışı oynadığını, duraklatılabildiğini ve hareket değişince doğru klibin geldiğini doğrula. Hareketi Azalt etkin olduğunda ilk açılışta sabit kapak gösterildiğini kontrol et. Kaynaklar Prototip/iOS/Resources/WorkoutMedia ve Assets.xcassets içindedir. Güncel görsel referans Design/Ovi_Antrenman_Onizleme.jpg dosyasındadır.
+Antrenman sekmesinde Salon ve Ev programlarını aç. Kadın ve erkek profillerinin her birinde beş hareketin kapağı, program üst görseli ve klibi ilgili eğitmeni göstermeli. Profili değiştirerek geri dön ve açık ekranların güncellendiğini doğrula. Cinsiyeti belirtilmemiş profilde eğitmen seçim düğmesini ve seçimin yeniden açılışta korunmasını test et. Her birinde detay ve aktif set ekranını açarak yerel MP4 dosyasının çevrimdışı oynadığını, duraklatılabildiğini ve hareket değişince doğru klibin geldiğini doğrula. Hareketi Azalt etkin olduğunda ilk açılışta sabit kapak gösterildiğini kontrol et. Kaynaklar Prototip/iOS/Resources/WorkoutMedia ve Assets.xcassets içindedir. Güncel görsel referans Design/Antrenman_Egitmenleri.jpg dosyasındadır.
 
 Ana ekran, Plan, Su ve Gelişim sekmelerini kontrol et. Gerekli derleme hatalarını gider. Build sonucunu, çalıştırdığın kontrolleri ve simülatör ekran görüntülerini paylaş.
 

@@ -104,16 +104,21 @@ jobs:
             xcrun simctl io "$UDID" screenshot "screenshots/$s.png"
             xcrun simctl terminate "$UDID" "$BUNDLE" || true
           done
-          xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen workout -of.workoutPlace home
-          sleep 6; xcrun simctl io "$UDID" screenshot "screenshots/workout-ev.png"; xcrun simctl terminate "$UDID" "$BUNDLE" || true
-          # Beş hareketin detayı (Ovi kapağı + yerel MP4 oynarken)
-          for id in squat latpulldown dbbench pushup glutebridge; do
-            xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen exercise -OvisExercise "$id"
-            sleep 7
-            xcrun simctl io "$UDID" screenshot "screenshots/hareket-$id.png"
-            xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          # Eğitmenler: kadın ve erkek profilde program (Salon/Ev) ve beş hareketin detayı (yerel MP4 oynarken)
+          for sex in female male; do
+            for place in gym home; do
+              xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisSex $sex -OvisScreen workout -of.workoutPlace $place
+              sleep 6; xcrun simctl io "$UDID" screenshot "screenshots/antrenman-$sex-$place.png"; xcrun simctl terminate "$UDID" "$BUNDLE" || true
+            done
+            for id in squat latpulldown dbbench pushup glutebridge; do
+              xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisSex $sex -OvisScreen exercise -OvisExercise "$id"
+              sleep 7; xcrun simctl io "$UDID" screenshot "screenshots/hareket-$sex-$id.png"; xcrun simctl terminate "$UDID" "$BUNDLE" || true
+            done
           done
-          # Hareketi Azalt açıkken: ilk açılışta sabit kapak ve "izle" düğmesi beklenir
+          # Cinsiyeti belirtilmemiş profil: eğitmen seçici
+          xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisSex unspecified -OvisScreen workout -of.workoutPlace gym
+          sleep 6; xcrun simctl io "$UDID" screenshot "screenshots/antrenman-belirtilmemis.png"; xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          # Hareketi Azalt açıkken: ilk açılışta sabit kapak ve "oynat" düğmesi beklenir
           xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility ReduceMotionEnabled -bool true || true
           xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen exercise -OvisExercise squat
           sleep 7; xcrun simctl io "$UDID" screenshot "screenshots/hareket-squat-hareketi-azalt.png"
