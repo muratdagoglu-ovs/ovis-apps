@@ -11,7 +11,7 @@ final class WorkoutMediaUITests: XCTestCase {
 
     func testFiveExercisesPosterAndLocalVideo() {
         let app = XCUIApplication()
-        app.launchArguments = ["-OvisScreenshotData", "-of.workoutPlace", "gym"]
+        app.launchArguments = ["-OvisScreenshotData"]
         app.launch()
         app.tabBars.buttons["Antrenman"].tap()
 
@@ -35,7 +35,7 @@ final class WorkoutMediaUITests: XCTestCase {
 
     func testPlayerSwitchesClipWithExercise() {
         let app = XCUIApplication()
-        app.launchArguments = ["-OvisScreenshotData", "-of.workoutPlace", "gym"]
+        app.launchArguments = ["-OvisScreenshotData"]
         app.launch()
         app.tabBars.buttons["Antrenman"].tap()
         tap(app, "Salon")
