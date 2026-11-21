@@ -93,6 +93,7 @@ struct ProfileFormView: View {
                         ForEach(Sex.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.menu)
+                    .accessibilityIdentifier("profile.sex")
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .padding(.horizontal, 6)
                     .background(Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

@@ -74,8 +74,11 @@ final class WorkoutMediaUITests: XCTestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
 
         tap(app, "Profilim")
-        let sexPicker = app.buttons["Cinsiyet"]
-        XCTAssertTrue(sexPicker.waitForExistence(timeout: 5), "Cinsiyet seçicisi yok")
+        var sexPicker = app.buttons["profile.sex"]
+        if !sexPicker.waitForExistence(timeout: 5) {
+            sexPicker = app.buttons.matching(NSPredicate(format: "label == %@ OR label CONTAINS %@", "Kadın", "Cinsiyet")).firstMatch
+        }
+        XCTAssertTrue(sexPicker.waitForExistence(timeout: 3), "Cinsiyet seçicisi yok: \(app.buttons.allElementsBoundByIndex.map(\.label))")
         sexPicker.tap()
         let male = app.buttons.matching(NSPredicate(format: "label == %@", "Erkek")).firstMatch
         XCTAssertTrue(male.waitForExistence(timeout: 3))
