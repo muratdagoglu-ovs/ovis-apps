@@ -17,7 +17,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: ovisfit/Prototip
@@ -98,12 +98,27 @@ jobs:
             xcrun simctl terminate "$UDID" "$BUNDLE" || true
           done
           # Tasarım karşılaştırması: ayrı geçici örnek veriyle (gerçek günlüğe yazılmaz)
-          for s in today analysis water workout exercise player; do
-            xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen "$s"
+          for s in today plan water growth analysis workout player; do
+            xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen "$s" -of.workoutPlace gym
             sleep 7
             xcrun simctl io "$UDID" screenshot "screenshots/$s.png"
             xcrun simctl terminate "$UDID" "$BUNDLE" || true
           done
+          xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen workout -of.workoutPlace home
+          sleep 6; xcrun simctl io "$UDID" screenshot "screenshots/workout-ev.png"; xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          # Beş hareketin detayı (Ovi kapağı + yerel MP4 oynarken)
+          for id in squat latpulldown dbbench pushup glutebridge; do
+            xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen exercise -OvisExercise "$id"
+            sleep 7
+            xcrun simctl io "$UDID" screenshot "screenshots/hareket-$id.png"
+            xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          done
+          # Hareketi Azalt açıkken: ilk açılışta sabit kapak ve "izle" düğmesi beklenir
+          xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility ReduceMotionEnabled -bool true || true
+          xcrun simctl launch "$UDID" "$BUNDLE" -OvisScreenshotData -OvisScreen exercise -OvisExercise squat
+          sleep 7; xcrun simctl io "$UDID" screenshot "screenshots/hareket-squat-hareketi-azalt.png"
+          xcrun simctl terminate "$UDID" "$BUNDLE" || true
+          xcrun simctl spawn "$UDID" defaults write com.apple.Accessibility ReduceMotionEnabled -bool false || true
           ls -la screenshots
 
       - name: Ekran görüntülerini ci-screenshots dalına kaydet

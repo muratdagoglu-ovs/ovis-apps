@@ -6,7 +6,7 @@ def uid(name): return hashlib.md5(name.encode()).hexdigest().upper()[:24]
 
 core = sorted(f for f in os.listdir(f'{root}/iOS/Core') if f.endswith('.swift'))
 ui = sorted(f for f in os.listdir(f'{root}/iOS/UI') if f.endswith('.swift'))
-res = [('Assets.xcassets','folder.assetcatalog'),('foods.json','text.json'),('PrivacyInfo.xcprivacy','text.xml')]
+res = [('Assets.xcassets','folder.assetcatalog'),('WorkoutMedia','folder'),('foods.json','text.json'),('PrivacyInfo.xcprivacy','text.xml')]
 
 objs = []
 def add(i, body): objs.append(f'\t\t{i} = {{{body}}};')
@@ -37,8 +37,13 @@ def wbuild(key, fid):
     bid = uid('wbuild/'+key); add(bid, f'isa = PBXBuildFile; fileRef = {fid}; '); w_src_build.append(bid)
 wbuild('swift', w_swift)
 wbuild('snapshot', uid('ref/Core/WidgetSnapshot.swift'))
-ut_swift = fileref('UITests', 'OnboardingUITests.swift', 'sourcecode.swift')
-ut_bf = uid('utbuild/swift'); add(ut_bf, f'isa = PBXBuildFile; fileRef = {ut_swift}; ')
+ut_files = sorted(f for f in os.listdir(f'{root}/UITests') if f.endswith('.swift'))
+ut_refs, ut_bfs = [], []
+for name in ut_files:
+    ref = fileref('UITests', name, 'sourcecode.swift')
+    bf = uid('utbuild/swift' if name == 'OnboardingUITests.swift' else 'utbuild/' + name)
+    add(bf, f'isa = PBXBuildFile; fileRef = {ref}; ')
+    ut_refs.append(ref); ut_bfs.append(bf)
 xctest_id = uid('product/uitests')
 add(xctest_id, 'isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OvisFitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; ')
 appex_id = uid('product/appex')
@@ -57,7 +62,7 @@ g_res = group('res', res_ids, path='Resources')
 g_ios = group('ios', [g_core, g_ui, g_res, info_id, ent_id], path='iOS')
 g_cfg = group('cfg', [base_id, localex_id], path='Config')
 g_prod = group('prod', [app_id, appex_id, xctest_id], name='Products')
-g_ut = group('uitests', [ut_swift], path='UITests')
+g_ut = group('uitests', ut_refs, path='UITests')
 g_w = group('widgets', [w_swift, w_info, w_ent], path='Widgets')
 g_main = group('main', [g_ios, g_w, g_ut, g_cfg, g_prod])
 
@@ -86,7 +91,7 @@ wp_res = uid('wphase/res'); add(wp_res, 'isa = PBXResourcesBuildPhase; buildActi
 embed_bf = uid('build/embed-appex'); add(embed_bf, f'isa = PBXBuildFile; fileRef = {appex_id}; settings = {{ATTRIBUTES = (RemoveHeadersOnCopy, ); }}; ')
 p_embed = uid('phase/embed'); add(p_embed, f'isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = ({embed_bf}, ); name = "Embed Foundation Extensions"; runOnlyForDeploymentPostprocessing = 0; ')
 
-up_src = uid('utphase/src'); add(up_src, f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ({ut_bf}, ); runOnlyForDeploymentPostprocessing = 0; ')
+up_src = uid('utphase/src'); add(up_src, f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ({", ".join(ut_bfs)}, ); runOnlyForDeploymentPostprocessing = 0; ')
 up_fw = uid('utphase/fw'); add(up_fw, 'isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; ')
 
 def settings(d): return 'buildSettings = {' + ' '.join(f'{k} = {v};' for k,v in d.items()) + ' }; '

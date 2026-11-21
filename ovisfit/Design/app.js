@@ -1,9 +1,9 @@
 const paths={
 home:'M3 10 12 3l9 7v10h-6v-6H9v6H3z',plan:'M4 6h16v15H4z M8 3v6m8-6v6M7 12h10m-10 4h7',drop:'M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z',chart:'M3 3v17h18M6 15l5-6 4 3 5-7',camera:'M3 7h4l2-3h6l2 3h4v13H3z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0z',walk:'M14 5a2 2 0 1 1 0-4 2 2 0 0 1 0 4z M6 12l4-4 3-1 3 5 4 1 M12 9l-2 6 4 3 1 4m-5-7-5 7',left:'m14 5-7 7 7 7',next:'m9 5 7 7-7 7',food:'M5 3v6q0 4 3 4t3-4V3M8 3v18m10-18q-4 5-3 10h4m0-10v18',check:'m3 12 6 6L21 5',adjust:'M3 7h6m4 0h8M3 17h10m4 0h4 M13 7a2 2 0 1 1-4 0 2 2 0 1 1 4 0z M17 17a2 2 0 1 1-4 0 2 2 0 1 1 4 0z',leaf:'M4 18C-1 8 8 3 21 3c0 13-6 19-15 15m-2 3 11-12',clock:'M21 12a9 9 0 1 1-18 0 9 9 0 1 1 18 0z M12 6v6l4 2',user:'M16 7a4 4 0 1 1-8 0 4 4 0 1 1 8 0zM4 21c1-9 15-9 16 0',up:'m4 16 7-7 4 4 6-7m-5 0h5v5',down:'m4 8 7 7 4-4 6 7m-5 0h5v-5',steady:'M3 12h18m-5-5 5 5-5 5',image:'M3 4h18v16H3zM3 17l6-6 4 4 3-3 5 5',shoe:'M3 12V7l5 1 2 4 6 2 4 1 1 4H3z',plus:'M12 4v16M4 12h16',cup:'M5 4h14l-2 16H7z M6 10h12'};
 const ic=n=>'<svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+paths[n]+'"/></svg>';
-const screens=['bugun','profil','hedef','plan','hareket','fotograf','analiz','degistir','su','odem','gelisim'];
+const screens=['bugun','profil','hedef','plan','hareket','fotograf','analiz','degistir','su','odem','gelisim','antrenman'];
 const S={age:35,height:175,weight:75,sex:'Kadın',goal:'Kilomu korumak',activity:'Orta',rice:150,oil:0,water:1000,other:250,restricted:false,drink:'Su',target:1750,mealSaved:false,walkDone:false,context:'Dışarıdayım',swap:false,added:false,waterlog:[],validProfile:true};
-const navs=[['bugun','home','Bugün'],['plan','plan','Plan'],['su','drop','Su'],['gelisim','chart','Gelişim']];
+const navs=[['bugun','home','Bugün'],['plan','plan','Plan'],['antrenman','walk','Antrenman'],['su','drop','Su'],['gelisim','chart','Gelişim']];
 const act=(name,js,cls='cta')=>'<button class="'+cls+'" onclick="'+js+'">'+name+'</button>';
 const go=id=>"location.hash='"+id+"'";
 const goto=(name,id,cls)=>act(name,go(id),cls);
@@ -28,9 +28,33 @@ const steps=n=>'<div class="ticks"><i class="on"></i><i class="'+(n===2?'on':'')
 function clickSave(){S.mealSaved=true;S.savedRange=[lo(),hi()];location.hash='bugun'}
 function waterAdd(n){S.waterlog.push([S.drink,n]);if(S.drink==='Su')S.water+=n;else S.other+=n;render()}
 function waterUndo(){let item=S.waterlog.pop();if(item){if(item[0]==='Su')S.water-=item[1];else S.other-=item[1]}render()}
+const exercises = [
+    { id: 'squat', place: 'Salon', name: 'Barbell squat', sets: '3 set × 8–10 tekrar' },
+    { id: 'latpulldown', place: 'Salon', name: 'Lat pulldown', sets: '3 set × 10–12 tekrar' },
+    { id: 'dbbench', place: 'Salon', name: 'Dambıl bench press', sets: '3 set × 8–12 tekrar' },
+    { id: 'pushup', place: 'Ev', name: 'Şınav', sets: '3 set × 8–12 tekrar' },
+    { id: 'glutebridge', place: 'Ev', name: 'Kalça köprüsü', sets: '3 set × 12–15 tekrar' }
+];
+let workoutPlace = 'Salon';
+const mediaRoot = '../Prototip/iOS/Resources/';
+function workoutPreview() {
+    const list = exercises.filter(ex => ex.place === workoutPlace);
+    const filters = ['Salon', 'Ev'].map(place =>
+        act(place, "workoutPlace='" + place + "'; render()", place === workoutPlace ? 'on' : '')
+    ).join('');
+    const cards = list.map(ex => {
+        const jpg = mediaRoot + 'Assets.xcassets/ovi-' + ex.id + '.imageset/poster.jpg';
+        return '<section class="workout-card"><video controls playsinline muted loop preload="none" poster="' + jpg + '" aria-label="Ovi ile ' + ex.name + '"><source src="' + mediaRoot + 'WorkoutMedia/' + ex.id + '.mp4" type="video/mp4"></video><div><strong>' + ex.name + '</strong><span>' + ex.sets + '</span></div></section>';
+    }).join('');
+    return '<div class="bar">' + word + avatar + '</div>' +
+        heading('Antrenman', 'Bugünün <span class="serif">programı.</span>') + '<div class="seg">' + filters + '</div>' +
+        '<div class="training-cover"><b>' + workoutPlace + '</b><span>' + list.length + ' hareket · ' + (list.length * 3) + ' set</span></div>' + cards;
+}
+
 function render(){
 const id=location.hash.slice(1)||'bugun';if(!screens.includes(id)){location.hash='bugun';return}
 let html='',foot='';
+if(id==='antrenman'){html=workoutPreview();foot=tabnav(id)}
 if(id==='bugun'){
 const energy=S.mealSaved?1240+Math.round((S.savedRange[0]+S.savedRange[1])/2):1240,pct=Math.round(100*energy/2100);
 html='<div class="bar">'+word+avatar+'</div>'+heading('20 Kasım · Cuma','Günaydın, <span class="serif">Murat.</span>')+

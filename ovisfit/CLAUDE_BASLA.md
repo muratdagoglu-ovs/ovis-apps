@@ -1,5 +1,14 @@
 # Ovis Fit · iPhone uygulamasını tamamla
 
+## Bu sürümün teslim kontrolü
+
+OvisFit klasöründe çalış. Prototip/OvisFit.xcodeproj içindeki mevcut uygulamayı Xcode ile bir iPhone simülatöründe derle. Güncel tasarım ve davranış için projedeki SwiftUI ekranlarını esas al. Aşağıdaki önceki ekran tarifleri ürünün geçmiş tasarım referansıdır.
+
+Antrenman sekmesinde Salon ve Ev programlarını aç. Beş hareketin kapaklarını kontrol et. Her birinde detay ve aktif set ekranını açarak yerel MP4 dosyasının çevrimdışı oynadığını, duraklatılabildiğini ve hareket değişince doğru klibin geldiğini doğrula. Hareketi Azalt etkin olduğunda ilk açılışta sabit kapak gösterildiğini kontrol et. Kaynaklar Prototip/iOS/Resources/WorkoutMedia ve Assets.xcassets içindedir. Güncel görsel referans Design/Ovi_Antrenman_Onizleme.jpg dosyasındadır.
+
+Ana ekran, Plan, Su ve Gelişim sekmelerini kontrol et. Gerekli derleme hatalarını gider. Build sonucunu, çalıştırdığın kontrolleri ve simülatör ekran görüntülerini paylaş.
+
+
 Bu klasörü Mac üzerinde Claude Code ile aç. Görev, Prototip/OvisFit.xcodeproj projesini geliştirip fiziksel iPhone’a kurulabilecek bir SwiftUI uygulaması ve simülatörde doğrulanmış bir Debug derlemesi teslim etmektir. Sadece plan yazmakla kalma; kaynakları düzenle, test et, derle ve sonucu raporla.
 
 ## Önce açılacak dosyalar

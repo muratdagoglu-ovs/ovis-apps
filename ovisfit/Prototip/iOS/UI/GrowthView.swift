@@ -52,7 +52,7 @@ struct GrowthView: View {
             }
             .foregroundStyle(.white)
             .padding(18)
-            .background(Color.ofDeep, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(Color.heroGradient, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
 
             SectionHeader("Haftanın kayıtları")
             LineRow(symbol: "fork.knife", title: "\(r.mealCount) öğün",

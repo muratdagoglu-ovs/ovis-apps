@@ -121,7 +121,12 @@ struct MainTabs: View {
             router.tab = .workout
         case "exercise":
             router.tab = .workout
-            router.workout = [.exercise("squat")]
+            let id = args.firstIndex(of: "-OvisExercise").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } ?? "squat"
+            router.workout = [.exercise(id)]
+        case "plan":
+            router.tab = .plan
+        case "growth":
+            router.tab = .growth
         case "analysis":
             router.tab = .today
             plate.useSample()

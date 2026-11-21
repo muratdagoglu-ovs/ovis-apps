@@ -22,6 +22,16 @@ struct TodayView: View {
 
             energyCard(summary: summary, target: target)
 
+            NavigationLink(value: Route.photo) {
+                Label("Tabağımı analiz et", systemImage: "camera")
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            NavigationLink(value: Route.barcode) {
+                Label("Paketli ürün · barkod okut", systemImage: "barcode.viewfinder")
+            }
+            .buttonStyle(LinkButtonStyle())
+            .frame(maxWidth: .infinity)
+
             SectionHeader(title: "Sıradaki öğün") {
                 Button("Planım ›") { router.tab = .plan }
                     .buttonStyle(LinkButtonStyle())
@@ -57,15 +67,6 @@ struct TodayView: View {
                 }
                 .buttonStyle(.plain)
             }
-
-            NavigationLink(value: Route.photo) {
-                Label("Tabağımı analiz et", systemImage: "camera")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            NavigationLink(value: Route.barcode) {
-                Label("Paketli ürün · barkod okut", systemImage: "barcode.viewfinder")
-            }
-            .buttonStyle(PrimaryButtonStyle(fill: .ofLime, ink: .ofInk))
 
             QuickAddSection()
             ReminderSetupCard()
@@ -144,7 +145,7 @@ struct TodayView: View {
         }
         .foregroundStyle(.white)
         .padding(18)
-        .background(Color.ofDeep, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(Color.heroGradient, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Bugünkü tahmini enerji \(summary.estimate) kilokalori, hedef \(target), hedefin yüzde \(pct)'i. Hedefe kalan \(summary.remaining(to: target)) kilokalori.")
     }

@@ -8,18 +8,21 @@ extension Color {
                   blue: Double(hex & 0xFF) / 255,
                   opacity: 1)
     }
-    static let ofBackground = Color(hex: 0xF8F8F1)
-    static let ofInk = Color(hex: 0x192F28)
-    static let ofDeep = Color(hex: 0x163E35)
-    static let ofLime = Color(hex: 0xDEEFA1)
-    static let ofRing = Color(hex: 0xD7ED88)
-    static let ofWater = Color(hex: 0xDCEEF2)
+    static let ofBackground = Color(hex: 0xF5F7F3)
+    static let ofInk = Color(hex: 0x152F2D)
+    static let ofDeep = Color(hex: 0x103F3D)
+    static let ofLime = Color(hex: 0xB9E9D6)
+    static let ofRing = Color(hex: 0x79DED1)
+    static let ofWater = Color(hex: 0xD9EBEF)
     static let ofWaterInk = Color(hex: 0x1D4E5C)
-    static let ofDivider = Color(hex: 0xDBE2D3)
+    static let ofDivider = Color(hex: 0xD6E2DC)
     static let ofMuted = Color(hex: 0x56655F)
-    static let ofSage = Color(hex: 0xE5EADA)
-    static let ofSoftLime = Color(hex: 0xE8EFD9)
-    static let ofMove = Color(hex: 0xE9EACF)
+    static let ofSage = Color(hex: 0xE5EEE5)
+    static let ofSoftLime = Color(hex: 0xE2F0E7)
+    static let ofMove = Color(hex: 0xDBEEE5)
+    static let heroGradient = LinearGradient(
+        colors: [Color(hex: 0x103B39), Color(hex: 0x195957)],
+        startPoint: .topLeading, endPoint: .bottomTrailing)
     static let ofWarn = Color(hex: 0x9B2C1F)
 }
 
@@ -52,6 +55,7 @@ struct Kicker: View {
     var body: some View {
         Text(text.uppercased(with: Locale(identifier: "tr_TR")))
             .font(.caption.weight(.semibold))
+            .tracking(1.15)
             .foregroundStyle(color)
     }
 }
@@ -95,7 +99,7 @@ struct Wordmark: View {
             ZStack {
                 Circle().stroke(Color.ofDeep, lineWidth: 6)
                 Circle().trim(from: 0.62, to: 0.86)
-                    .stroke(Color(hex: 0x9DB27A), style: StrokeStyle(lineWidth: 6))
+                    .stroke(Color(hex: 0x4DBEAE), style: StrokeStyle(lineWidth: 6))
             }
             .frame(width: 22, height: 22)
             (Text("Ovis").font(.system(.title, design: .default).weight(.bold))
@@ -154,7 +158,8 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity, minHeight: Metrics.actionHeight)
             .padding(.horizontal, 16)
             .background(fill.opacity(enabled ? (configuration.isPressed ? 0.85 : 1) : 0.4),
-                        in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .scaleEffect(configuration.isPressed ? 0.99 : 1)
     }
 }
 

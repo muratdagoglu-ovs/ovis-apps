@@ -35,7 +35,8 @@ struct WaterView: View {
                 ForEach(Hydration.quickAmounts, id: \.self) { amount in
                     Button { store.addDrink(amount, kind: kind) } label: {
                         VStack(alignment: .leading, spacing: 10) {
-                            Image(systemName: "cup.and.saucer").font(.body)
+                            Image(systemName: kind == DrinkKind.water ? "drop.fill" : "cup.and.saucer.fill")
+                                .foregroundStyle(Color.ofWaterInk)
                             Text("+ \(amount) ml").font(.headline).monospacedDigit()
                                 .minimumScaleFactor(0.7).lineLimit(1)
                         }
@@ -111,7 +112,7 @@ struct WaterCard: View {
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.ofWater)
+        .background(LinearGradient(colors: [.white, Color.ofWater], startPoint: .topLeading, endPoint: .bottomTrailing))
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibility)

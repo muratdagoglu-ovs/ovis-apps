@@ -98,7 +98,8 @@ struct WeekStrip: View {
                     }
                     .foregroundStyle(on ? Color.white : Color.ofInk)
                     .frame(maxWidth: .infinity, minHeight: 56)
-                    .background(on ? Color.ofDeep : Color.ofSoftLime, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(on ? Color.ofDeep : Color.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.ofDivider.opacity(on ? 0 : 0.8)))
                     .overlay(alignment: .bottom) {
                         if cal.isDate(day, inSameDayAs: today) && !on {
                             Circle().fill(Color.ofDeep).frame(width: 5, height: 5).padding(.bottom, 5)
@@ -264,7 +265,7 @@ struct MovementView: View {
                 .foregroundStyle(.white)
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.ofDeep, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .background(Color.heroGradient, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .accessibilityElement(children: .combine)
             }
 
