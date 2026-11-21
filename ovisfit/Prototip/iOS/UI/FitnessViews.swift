@@ -306,7 +306,9 @@ struct WorkoutView: View {
         .onAppear {
             #if DEBUG
             let args = ProcessInfo.processInfo.arguments
-            if let i = args.firstIndex(of: "-OvisScreen"), i + 1 < args.count, args[i + 1] == "player" { showPlayer = true }
+            if let i = args.firstIndex(of: "-OvisScreen"), i + 1 < args.count, args[i + 1] == "player" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { showPlayer = true }
+            }
             #endif
         }
     }
