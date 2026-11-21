@@ -33,7 +33,7 @@ final class OnboardingUITests: XCTestCase {
         tapButton(app, containing: "Devam")                      // → beslenme
         tapButton(app, containing: "Süt ve süt ürünleri")
         tapButton(app, containing: "Devam")                      // → özet
-        XCTAssertTrue(element(app, "Günlük enerji hedefin").waitForExistence(timeout: 5), "Özet ekranı yok")
+        XCTAssertTrue(element(app, "kcal").waitForExistence(timeout: 5), "Özet ekranı yok")
         tapButton(app, containing: "Planımı oluştur")
 
         // 3 · Bugün ekranı ve isim
